@@ -6,7 +6,9 @@
 #include "BinUtils.hxx"
 #include "MakeQChild.hxx"
 #include "SectionHeader.hxx"
+#include "SectionHeaderItemModel.hxx"
 #include "Symbol.hxx"
+#include "SymbolItemModel.hxx"
 #include "ui_MainWindow.h"
 
 MainWindow::MainWindow(BinUtils* binUtils, QWidget* parent)
@@ -20,33 +22,6 @@ MainWindow::MainWindow(BinUtils* binUtils, QWidget* parent)
   QSettings settings;
   resize(settings.value("MainWindow::size", size()).toSize());
   move(settings.value("MainWindow::pos", pos()).toPoint());
-
-  auto* p = MakeQChild<QProcess>(this);
-  connect(p,
-          static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(
-            &QProcess::finished),
-          [this, p](int exitCode, QProcess::ExitStatus exitStatus) {
-            if (exitCode == 0 && exitStatus == QProcess::ExitStatus::NormalExit)
-            {
-              QString output  = p->readAllStandardOutput();
-              auto    headers = SectionHeader::ParseFromObjdump(output);
-            }
-          });
-  //  Qt::ConnectionType::AutoConnection | Qt::ConnectionType::UniqueConnection
-  p->start(_binUtils->Objdump(), { "-hw", _binUtils->ElfFile() });
-
-  auto* syms = MakeQChild<QProcess>(this);
-  connect(syms,
-          static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(
-            &QProcess::finished),
-          [this, syms](int exitCode, QProcess::ExitStatus exitStatus) {
-            if (exitCode == 0 && exitStatus == QProcess::ExitStatus::NormalExit)
-            {
-              QString output = syms->readAllStandardOutput();
-              Symbol::ParseFromObjdump(output);
-            }
-          });
-  syms->start(_binUtils->Objdump(), { "-Ctw", _binUtils->ElfFile() });
 }
 
 MainWindow::~MainWindow()
@@ -55,6 +30,39 @@ MainWindow::~MainWindow()
   settings.setValue("MainWindow::size", size());
   settings.setValue("MainWindow::pos", pos());
   delete _ui;
+}
+
+void MainWindow::showEvent(QShowEvent* e)
+{
+  QMainWindow::showEvent(e);
+
+  auto* headerPs = new QProcess;
+  connect(headerPs,
+          static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+          [this, headerPs](int exitCode, QProcess::ExitStatus exitStatus) {
+            if (exitCode == 0 && exitStatus == QProcess::ExitStatus::NormalExit)
+            {
+              _sectionHeaders          = SectionHeader::ParseFromObjdump(headerPs->readAllStandardOutput());
+              auto* sectionHeaderModel = MakeQChild<SectionHeaderItemModel, std::vector<SectionHeader>&>(_sectionHeaders, this);
+              _ui->sectionHeaderTableView->setModel(sectionHeaderModel);
+            }
+            headerPs->deleteLater();
+          });
+  headerPs->start(_binUtils->Objdump(), { "-hw", _binUtils->ElfFile() });
+
+  auto* symbolPs = new QProcess;
+  connect(symbolPs,
+          static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+          [this, symbolPs](int exitCode, QProcess::ExitStatus exitStatus) {
+            if (exitCode == 0 && exitStatus == QProcess::ExitStatus::NormalExit)
+            {
+              _symbolTable           = Symbol::ParseFromObjdump(symbolPs->readAllStandardOutput());
+              auto* symbolTableModel = MakeQChild<SymbolItemModel, std::vector<Symbol>&>(_symbolTable, this);
+              _ui->symbolTableTableView->setModel(symbolTableModel);
+            }
+            symbolPs->deleteLater();
+          });
+  symbolPs->start(_binUtils->Objdump(), { "-Ctw", _binUtils->ElfFile() });
 }
 
 void MainWindow::changeEvent(QEvent* e)

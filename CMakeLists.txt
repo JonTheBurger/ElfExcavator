@@ -45,8 +45,12 @@ add_executable(${PROJECT_NAME}
     MakeQChild.hxx
     SectionHeader.cxx
     SectionHeader.hxx
+    SectionHeaderItemModel.cxx
+    SectionHeaderItemModel.hxx
     Symbol.cxx
     Symbol.hxx
+    SymbolItemModel.cxx
+    SymbolItemModel.hxx
 )
 target_include_directories(${PROJECT_NAME}
     PRIVATE

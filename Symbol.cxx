@@ -5,10 +5,6 @@
 #include <QRegularExpression>
 #include <QStringList>
 
-static constexpr int RADIX              = 16;
-static constexpr int NUMBER_STR_LEN     = 16;
-static constexpr int SPACES_BEFORE_NAME = 14;
-
 Symbol::operator QString() const
 {
   const auto metaEnum = QMetaEnum::fromType<Symbol::Flag>();
@@ -20,11 +16,11 @@ Symbol::operator QString() const
     .arg(QString(metaEnum.valueToKeys(Types)));
 }
 
-Symbol::Flag Symbol::ParseFromObjdumpChar(const QChar in)
+Symbol::Flag Symbol::ParseFromObjdumpChar(const char in)
 {
   Symbol::Flag out = Symbol::Flag::NORMAL;
 
-  switch (in.toLatin1())
+  switch (in)
   {
     case 'l':
       out = Symbol::Flag::LOCAL;
@@ -92,13 +88,17 @@ Symbol::Flag Symbol::ParseFromObjdumpChar(const QChar in)
 static QStringList::const_iterator SkipObjdumpPreface(const QStringList& lines)
 {
   static constexpr int OBJDUMP_PREFACE_LINE_COUNT = 2;
-  return lines.begin() + OBJDUMP_PREFACE_LINE_COUNT;
+  return lines.cbegin() + OBJDUMP_PREFACE_LINE_COUNT;
 }
 
 static Symbol ParseObjdumpLine(const QString& str)
 {
   /// Example:
   ///  000000000000d1c0 u     O .rodata	0000000000000008              QtPrivate::ConnectionTypes<QtPrivate::List<QString const&>, true>::types()::t
+  static constexpr int RADIX              = 16;
+  static constexpr int NUMBER_STR_LEN     = 16;
+  static constexpr int SPACES_BEFORE_NAME = 14;
+
   Symbol symbol;
   bool   ok;
 
@@ -108,11 +108,13 @@ static Symbol ParseObjdumpLine(const QString& str)
   symbol.Address = str.leftRef(leftSplitPoint).toULongLong(&ok, RADIX);
   Q_ASSERT(ok);
 
-  const auto flagSectionStrings = str.midRef(leftSplitPoint, rightSplitPoint - leftSplitPoint).split(' ', QString::SplitBehavior::SkipEmptyParts);
-  symbol.SectionName            = flagSectionStrings.last().toString();
-  for (auto it = flagSectionStrings.begin(); it != flagSectionStrings.cend() - 1; ++it)
+  auto flagSectionStrings = str.midRef(leftSplitPoint, rightSplitPoint - leftSplitPoint).split(' ', QString::SplitBehavior::SkipEmptyParts);
+  symbol.SectionName      = flagSectionStrings.last().toString();
+  flagSectionStrings.pop_back();
+  for (auto&& flagStr : flagSectionStrings)
   {
-    symbol.Types |= Symbol::ParseFromObjdumpChar(it->front());
+    // BUG: Contiguous flags not parsed
+    symbol.Types |= Symbol::ParseFromObjdumpChar(flagStr.front().toLatin1());
   }
 
   const auto sizeNameString = str.rightRef(str.size() - rightSplitPoint - sizeof('\t'));

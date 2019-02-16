@@ -47,7 +47,7 @@ static SectionHeader ParseObjdumpLine(const QString& str)
   Q_ASSERT(ok);
   header.FileOff = headerStrings[5].toULongLong(&ok, RADIX);
   Q_ASSERT(ok);
-  header.Align = headerStrings[6].mid(sizeof("2**") - sizeof(' ')).toInt(&ok);
+  header.Align = 1 << headerStrings[6].mid(sizeof("2**") - sizeof(' ')).toUInt(&ok);
   Q_ASSERT(ok);
 
   /// The bisect point is always followed by 2 spaces, e.g. "2**0  CONTENTS"

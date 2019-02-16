@@ -29,7 +29,7 @@ public:
   Q_FLAG(Flag)
 
   operator QString() const;
-  static Flag                ParseFromObjdumpChar(QChar in);
+  static Flag                ParseFromObjdumpChar(char in);
   static std::vector<Symbol> ParseFromObjdump(const QString& output);
 
   QString Name{};

@@ -2,6 +2,10 @@
 #define MAINWINDOW_HXX
 
 #include <QMainWindow>
+#include <vector>
+
+#include "SectionHeader.hxx"
+#include "Symbol.hxx"
 
 class BinUtils;
 namespace Ui {
@@ -17,11 +21,14 @@ public:
   ~MainWindow() final;
 
 protected:
+  void showEvent(QShowEvent* e) final;
   void changeEvent(QEvent* e) final;
 
 private:
-  Ui::MainWindow* _ui;
-  BinUtils*       _binUtils;
+  Ui::MainWindow*            _ui;
+  BinUtils*                  _binUtils;
+  std::vector<SectionHeader> _sectionHeaders;
+  std::vector<Symbol>        _symbolTable;
 };
 
 #endif  // MAINWINDOW_HXX

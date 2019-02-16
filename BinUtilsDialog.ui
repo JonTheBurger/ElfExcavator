@@ -82,6 +82,17 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>objdumpLineEdit</tabstop>
+  <tabstop>objdumpButton</tabstop>
+  <tabstop>readelfLineEdit</tabstop>
+  <tabstop>readelfButton</tabstop>
+  <tabstop>nmLineEdit</tabstop>
+  <tabstop>nmButton</tabstop>
+  <tabstop>elfLineEdit</tabstop>
+  <tabstop>elfButton</tabstop>
+  <tabstop>continueButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
