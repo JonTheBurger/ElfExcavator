@@ -25,19 +25,28 @@ if(NOT CMAKE_BUILD_TYPE)
     # Set the possible values of build type for cmake-gui
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
+find_program(CCACHE_FOUND ccache)
+
+if(CCACHE_FOUND)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif(CCACHE_FOUND)
 
 add_executable(${PROJECT_NAME}
     main.cxx
-    MainWindow.ui
-    MainWindow.cxx
-    MainWindow.hxx
-    BinUtilsDialog.ui
-    BinUtilsDialog.cxx
-    BinUtilsDialog.hxx
     BinUtils.cxx
     BinUtils.hxx
-    SectionHeaderParser.cxx
-    SectionHeaderParser.hxx
+    BinUtilsDialog.cxx
+    BinUtilsDialog.hxx
+    BinUtilsDialog.ui
+    MainWindow.cxx
+    MainWindow.hxx
+    MainWindow.ui
+    MakeQChild.hxx
+    SectionHeader.cxx
+    SectionHeader.hxx
+    Symbol.cxx
+    Symbol.hxx
 )
 target_include_directories(${PROJECT_NAME}
     PRIVATE
