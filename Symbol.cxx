@@ -114,7 +114,7 @@ static Symbol ParseObjdumpLine(const QString& str)
   for (auto&& flagStr : flagSectionStrings)
   {
     // BUG: Contiguous flags not parsed
-    symbol.Types |= Symbol::ParseFromObjdumpChar(flagStr.front().toLatin1());
+    symbol.Types |= Symbol::ParseFromObjdumpChar(flagStr[0].toLatin1());
   }
 
   const auto sizeNameString = str.rightRef(str.size() - rightSplitPoint - sizeof('\t'));

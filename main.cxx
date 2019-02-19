@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QPushButton>
 #include <QSettings>
+#include <iostream>
 
 #include "BinUtils.hxx"
 #include "BinUtilsDialog.hxx"

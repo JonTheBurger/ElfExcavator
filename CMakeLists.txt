@@ -13,7 +13,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt5 REQUIRED COMPONENTS Core Charts Gui Widgets)
+find_package(Qt5 5.9 REQUIRED COMPONENTS Core Charts Gui Widgets)
 
 # =========================
 # User Options
@@ -25,8 +25,8 @@ if(NOT CMAKE_BUILD_TYPE)
     # Set the possible values of build type for cmake-gui
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
-find_program(CCACHE_FOUND ccache)
 
+find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
@@ -42,7 +42,7 @@ add_executable(${PROJECT_NAME}
     MainWindow.cxx
     MainWindow.hxx
     MainWindow.ui
-    MakeQChild.hxx
+    MaxStore.hxx
     SectionHeader.cxx
     SectionHeader.hxx
     SectionHeaderItemModel.cxx

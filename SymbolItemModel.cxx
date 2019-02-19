@@ -2,9 +2,10 @@
 
 #include <QMetaEnum>
 
-SymbolItemModel::SymbolItemModel(std::vector<Symbol>& symbolTable, QObject* parent)
-    : QAbstractItemModel(parent)
+SymbolItemModel::SymbolItemModel(std::vector<Symbol>& symbolTable, std::vector<Qt::CheckState>& symbolCheckState, QObject* parent)
+    : QAbstractTableModel(parent)
     , _symbolTable(symbolTable)
+    , _symbolCheckState(symbolCheckState)
 {
 }
 
@@ -32,16 +33,6 @@ QVariant SymbolItemModel::headerData(int section, Qt::Orientation orientation, i
   return QVariant();
 }
 
-QModelIndex SymbolItemModel::index(int row, int column, const QModelIndex& parent) const
-{
-  return createIndex(row, column);
-}
-
-QModelIndex SymbolItemModel::parent(const QModelIndex& index) const
-{
-  return QModelIndex();
-}
-
 int SymbolItemModel::rowCount(const QModelIndex& parent) const
 {
   return _symbolTable.size();
@@ -66,9 +57,9 @@ QVariant SymbolItemModel::data(const QModelIndex& index, int role) const
       case SECTION_NAME:
         return _symbolTable[index.row()].SectionName;
       case ADDRESS:
-        return QString::number(_symbolTable[index.row()].Address, 16);
+        return static_cast<qulonglong>(_symbolTable[index.row()].Address);
       case SIZE:
-        return QString::number(_symbolTable[index.row()].Size, 16);
+        return static_cast<qulonglong>(_symbolTable[index.row()].Size);
       case TYPES:
       {
         const auto metaEnum = QMetaEnum::fromType<Symbol::Flag>();
@@ -78,5 +69,29 @@ QVariant SymbolItemModel::data(const QModelIndex& index, int role) const
         break;
     }
   }
+  else if ((role == Qt::CheckStateRole) && (index.column() == NAME))
+  {
+    return _symbolCheckState[index.row()];
+  }
   return QVariant();
+}
+
+Qt::ItemFlags SymbolItemModel::flags(const QModelIndex& index) const
+{
+  if (index.column() == Columns::NAME)
+  {
+    return QAbstractItemModel::flags(index) | Qt::ItemIsUserCheckable;
+  }
+  return QAbstractItemModel::flags(index);
+}
+
+bool SymbolItemModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+  if (index.isValid() && role == Qt::CheckStateRole)
+  {
+    _symbolCheckState[index.row()] = static_cast<Qt::CheckState>(value.toInt());
+    emit dataChanged(index, index, { role });
+    return true;
+  }
+  return false;
 }

@@ -1,6 +1,7 @@
 #ifndef BINUTILS_HXX
 #define BINUTILS_HXX
 
+#include <QProcess>
 #include <QString>
 
 class BinUtils {
@@ -18,6 +19,22 @@ public:
   bool           SetNm(const QString& value);
   const QString& ElfFile() const;
   bool           SetElfFile(const QString& value);
+
+  template <typename Function>
+  void ExecObjdump(const QStringList& args, Function&& callback)
+  {
+    auto* process = new QProcess;
+    QObject::connect(process,
+                     static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+                     [this, process, callback{ std::move(callback) }](int exitCode, QProcess::ExitStatus exitStatus) {
+                       if (exitCode == 0 && exitStatus == QProcess::ExitStatus::NormalExit)
+                       {
+                         callback(process->readAllStandardOutput());
+                       }
+                       process->deleteLater();
+                     });
+    process->start(this->Objdump(), args);
+  }
 
 private:
   QString _objdump;

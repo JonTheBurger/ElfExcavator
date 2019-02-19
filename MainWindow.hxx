@@ -2,6 +2,7 @@
 #define MAINWINDOW_HXX
 
 #include <QMainWindow>
+#include <memory>
 #include <vector>
 
 #include "SectionHeader.hxx"
@@ -17,6 +18,13 @@ class MainWindow : public QMainWindow {
   Q_DISABLE_COPY(MainWindow)
 
 public:
+  enum Tab {
+    SECTIONS,
+    SYMBOLS,
+
+    MAX,
+  };
+
   explicit MainWindow(BinUtils* binUtils, QWidget* parent = nullptr);
   ~MainWindow() final;
 
@@ -25,10 +33,8 @@ protected:
   void changeEvent(QEvent* e) final;
 
 private:
-  Ui::MainWindow*            _ui;
-  BinUtils*                  _binUtils;
-  std::vector<SectionHeader> _sectionHeaders;
-  std::vector<Symbol>        _symbolTable;
+  class MainWindowPrivate;
+  const std::unique_ptr<MainWindowPrivate> _impl;
 };
 
 #endif  // MAINWINDOW_HXX
