@@ -11,6 +11,7 @@ class SectionHeaderItemModel : public QAbstractTableModel {
 
 public:
   enum Columns {
+    INDEX,
     NAME,
     SIZE,
     VMA,
@@ -22,7 +23,7 @@ public:
     MAX,
   };
 
-  explicit SectionHeaderItemModel(std::vector<SectionHeader>& sectionHeaders, std::vector<Qt::CheckState>& sectionCheckState, QObject* parent = nullptr);
+  explicit SectionHeaderItemModel(std::vector<SectionHeader>& sectionHeaders, QObject* parent = nullptr);
 
   // Header:
   QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
@@ -38,8 +39,7 @@ public:
   bool          setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole) override;
 
 private:
-  std::vector<SectionHeader>&  _sectionHeaders;
-  std::vector<Qt::CheckState>& _sectionCheckState;
+  std::vector<SectionHeader>& _sectionHeaders;
 };
 
 #endif  // SECTIONHEADERITEMMODEL_HXX

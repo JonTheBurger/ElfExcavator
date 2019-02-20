@@ -34,9 +34,11 @@ public:
 
   QString Name{};
   QString SectionName{};
+  size_t  Index{};
   size_t  Address{};  /// Or Value
   size_t  Size{};     /// Or Alignment
   Flags   Types{};
+  bool    Display{};
 };
 Q_DECLARE_OPERATORS_FOR_FLAGS(Symbol::Flags)
 

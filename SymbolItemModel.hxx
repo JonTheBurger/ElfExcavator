@@ -11,6 +11,7 @@ class SymbolItemModel : public QAbstractTableModel {
 
 public:
   enum Columns {
+    INDEX,
     NAME,
     SECTION_NAME,
     ADDRESS,
@@ -20,7 +21,7 @@ public:
     MAX,
   };
 
-  explicit SymbolItemModel(std::vector<Symbol>& symbolTable, std::vector<Qt::CheckState>& symbolCheckState, QObject* parent = nullptr);
+  explicit SymbolItemModel(std::vector<Symbol>& symbolTable, QObject* parent = nullptr);
 
   // Header:
   QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
@@ -36,8 +37,7 @@ public:
   bool          setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole) override;
 
 private:
-  std::vector<Symbol>&         _symbolTable;
-  std::vector<Qt::CheckState>& _symbolCheckState;
+  std::vector<Symbol>& _symbolTable;
 };
 
 #endif  // SYMBOLITEMMODEL_HXX

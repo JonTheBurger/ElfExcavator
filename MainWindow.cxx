@@ -14,14 +14,16 @@
 #include "SymbolItemModel.hxx"
 #include "ui_MainWindow.h"
 
-/// TODO: Symbol/SectionHeader index
-/// TODO: Get 25 largest items
-/// TODO: Display Hex QStyledItemDelegate
+// https://doc.qt.io/qt-5.9/classes.html
+/// TODO: Chart colors
+/// TODO: Display Hex QStyledItemDelegate https://doc.qt.io/qt-5/qtwidgets-itemviews-stardelegate-example.html
 /// TODO: Zoom Chart
-/// TODO: Filter
-/// TODO: Syntax Highlighting
-/// TODO: Options Menu
 /// TODO: View Menu
+/// TODO: Plug the leaks
+/// BIG TODO: Filter https://doc.qt.io/qt-5/qsortfilterproxymodel.html#filterAcceptsRow
+/// BIG TODO: Syntax Highlighting
+/// BIG TODO: Options Menu (25 count, chart theme, chart animations)
+/// BIG TODO: Installer
 class MainWindow::MainWindowPrivate {
   Q_DISABLE_COPY(MainWindowPrivate)
 
@@ -54,11 +56,11 @@ public:
     {
       OnSelectedSectionHeaderChanged();
 
-      for (auto i = 0; i < SectionHeaders.size(); ++i)
+      for (auto& section : SectionHeaders)
       {
-        if (ShowSection.at(i))
+        if (section.Display)
         {
-          QPieSlice* const slice = series->append(SectionHeaders[i].Name, SectionHeaders[i].Size);
+          QPieSlice* const slice = series->append(section.Name, section.Size);
           slice->setLabelVisible();
         }
       }
@@ -69,11 +71,11 @@ public:
     {
       OnSelectedSymbolChanged();
 
-      for (auto i = 0; i < SymbolTable.size(); ++i)
+      for (auto& symbol : SymbolTable)
       {
-        if (ShowSymbol[i])
+        if (symbol.Display)
         {
-          QPieSlice* const slice = series->append(SymbolTable[i].Name, SymbolTable[i].Size);
+          QPieSlice* const slice = series->append(symbol.Name, symbol.Size);
           slice->setLabelVisible();
         }
       }
@@ -93,7 +95,7 @@ public:
     const size_t   row         = SectionModel->mapToSource(indices.first()).row();
     const QString& sectionName = SectionHeaders.at(row).Name;
 
-    if (ShowSection[row])
+    if (SectionHeaders[row].Display)
     {
       SectionModel->mapToSource(indices.first()).data(Qt::CheckStateRole);
       auto&& slices = static_cast<QPieSeries*>(Ui->chartView->chart()->series().first())->slices();
@@ -118,7 +120,7 @@ public:
     auto&&      slices = series->slices();
     for (int i = bottomRight.row(); i >= topLeft.row(); --i)
     {
-      if (ShowSection.at(i))  // add
+      if (SectionHeaders.at(i).Display)  // add
       {
         auto* slice = series->append(SectionHeaders[i].Name, SectionHeaders[i].Size);
         slice->setLabelVisible();
@@ -145,7 +147,7 @@ public:
     const size_t  row    = SymbolModel->mapToSource(indices.first()).row();
     const Symbol& symbol = SymbolTable.at(row);
 
-    if (ShowSymbol[row])  // TODO: Proxy busted this too
+    if (SymbolTable[row].Display)
     {
       auto&& slices = static_cast<QPieSeries*>(Ui->chartView->chart()->series().first())->slices();
       auto   it     = std::find_if(slices.begin(), slices.end(), [&symbol](QPieSlice* s) { return s->label() == symbol.Name; });
@@ -174,7 +176,7 @@ public:
     auto&&      slices = series->slices();
     for (int i = bottomRight.row(); i >= topLeft.row(); --i)
     {
-      if (ShowSymbol.at(i))  // add
+      if (SymbolTable.at(i).Display)  // add
       {
         auto* slice = series->append(SymbolTable[i].Name, SymbolTable[i].Size);
         slice->setLabelVisible();
@@ -197,8 +199,6 @@ public:
   std::unique_ptr<QSortFilterProxyModel> SymbolModel;
   std::vector<SectionHeader>             SectionHeaders;
   std::vector<Symbol>                    SymbolTable;
-  std::vector<Qt::CheckState>            ShowSection;
-  std::vector<Qt::CheckState>            ShowSymbol;
   bool                                   IsInit{ false };
 };
 
@@ -232,13 +232,13 @@ void MainWindow::showEvent(QShowEvent* e)
     _impl->BinUtil.ExecObjdump(
       { "-hw", _impl->BinUtil.ElfFile() },
       [this](const QString& out) {
-        _impl->SectionHeaders = SectionHeader::ParseFromObjdump(out);
-        _impl->ShowSection.resize(_impl->SectionHeaders.size(), Qt::CheckState::Checked);
-        auto* sectionHeaderModel = new SectionHeaderItemModel(_impl->SectionHeaders, _impl->ShowSection, this);
+        _impl->SectionHeaders    = SectionHeader::ParseFromObjdump(out);
+        auto* sectionHeaderModel = new SectionHeaderItemModel(_impl->SectionHeaders, this);
         _impl->SectionModel      = std::make_unique<QSortFilterProxyModel>();
         _impl->SectionModel->setSourceModel(sectionHeaderModel);
         _impl->Ui->sectionHeaderTableView->setModel(_impl->SectionModel.get());
         _impl->Ui->sectionHeaderTableView->setSortingEnabled(true);
+        _impl->Ui->sectionHeaderTableView->sortByColumn(SectionHeaderItemModel::INDEX, Qt::AscendingOrder);
 
         connect(
           sectionHeaderModel,
@@ -260,14 +260,13 @@ void MainWindow::showEvent(QShowEvent* e)
     _impl->BinUtil.ExecObjdump(
       { "-Ctw", _impl->BinUtil.ElfFile() },
       [this](const QString& out) {
-        _impl->SymbolTable = Symbol::ParseFromObjdump(out);
-        _impl->ShowSymbol.resize(_impl->SymbolTable.size(), Qt::CheckState::Unchecked);
-        auto* symbolTableModel = new SymbolItemModel(_impl->SymbolTable, _impl->ShowSymbol, this);
+        _impl->SymbolTable     = Symbol::ParseFromObjdump(out);
+        auto* symbolTableModel = new SymbolItemModel(_impl->SymbolTable, this);
         _impl->SymbolModel     = std::make_unique<QSortFilterProxyModel>();
-        _impl->SymbolModel->setSourceModel(symbolTableModel);
         _impl->SymbolModel->setSourceModel(symbolTableModel);
         _impl->Ui->symbolTableTableView->setModel(_impl->SymbolModel.get());
         _impl->Ui->symbolTableTableView->setSortingEnabled(true);
+        _impl->Ui->symbolTableTableView->sortByColumn(SymbolItemModel::INDEX, Qt::AscendingOrder);
 
         connect(
           symbolTableModel,

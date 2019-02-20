@@ -4,6 +4,9 @@
 #include <QMetaEnum>
 #include <QRegularExpression>
 #include <QStringList>
+#include <tuple>
+
+#include "MaxStore.hxx"
 
 static constexpr int RADIX = 16;
 
@@ -68,12 +71,22 @@ static SectionHeader ParseObjdumpLine(const QString& str)
 
 std::vector<SectionHeader> SectionHeader::ParseFromObjdump(const QString& output)
 {
-  std::vector<SectionHeader> headers;
+  std::vector<SectionHeader>           headers;
+  MaxStore<std::tuple<size_t, size_t>> maxStore(25);
 
   QStringList lines = output.split(QRegularExpression(QLatin1String("\n|\r\n|\r")), QString::SplitBehavior::SkipEmptyParts);
   for (auto it = SkipObjdumpPreface(lines); it != lines.cend(); ++it)
   {
     headers.push_back(ParseObjdumpLine(*it));
+    headers.back().Index = headers.size() - 1;
+    maxStore.push(std::make_tuple(headers.back().Size, headers.back().Index));
+  }
+
+  while (!maxStore.empty())
+  {
+    const auto index       = std::get<1>(maxStore.front());
+    headers[index].Display = true;
+    maxStore.pop();
   }
 
   return headers;

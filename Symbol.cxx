@@ -4,6 +4,9 @@
 #include <QMetaEnum>
 #include <QRegularExpression>
 #include <QStringList>
+#include <tuple>
+
+#include "MaxStore.hxx"
 
 Symbol::operator QString() const
 {
@@ -128,12 +131,22 @@ static Symbol ParseObjdumpLine(const QString& str)
 
 std::vector<Symbol> Symbol::ParseFromObjdump(const QString& output)
 {
-  std::vector<Symbol> symbolTable;
+  std::vector<Symbol>                  symbolTable;
+  MaxStore<std::tuple<size_t, size_t>> maxStore(25);
 
   QStringList lines = output.split(QRegularExpression(QLatin1String("\n|\r\n|\r")), QString::SkipEmptyParts);
   for (auto it = SkipObjdumpPreface(lines); it != lines.cend(); ++it)
   {
     symbolTable.push_back(ParseObjdumpLine(*it));
+    symbolTable.back().Index = symbolTable.size() - 1;
+    maxStore.push(std::make_tuple(symbolTable.back().Size, symbolTable.back().Index));
+  }
+
+  while (!maxStore.empty())
+  {
+    const auto index           = std::get<1>(maxStore.front());
+    symbolTable[index].Display = true;
+    maxStore.pop();
   }
 
   return symbolTable;

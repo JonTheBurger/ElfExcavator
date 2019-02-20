@@ -2,20 +2,23 @@
 
 #include <QMetaEnum>
 
-SymbolItemModel::SymbolItemModel(std::vector<Symbol>& symbolTable, std::vector<Qt::CheckState>& symbolCheckState, QObject* parent)
+SymbolItemModel::SymbolItemModel(std::vector<Symbol>& symbolTable, QObject* parent)
     : QAbstractTableModel(parent)
     , _symbolTable(symbolTable)
-    , _symbolCheckState(symbolCheckState)
 {
 }
 
 QVariant SymbolItemModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-  const SymbolItemModel::Columns column = static_cast<SymbolItemModel::Columns>(section);
-  if ((role == Qt::DisplayRole) && (orientation == Qt::Orientation::Horizontal))
+  if (orientation == Qt::Orientation::Vertical) { return QVariant(); }
+  const auto column = static_cast<SymbolItemModel::Columns>(section);
+
+  if (role == Qt::DisplayRole)
   {
     switch (column)
     {
+      case INDEX:
+        return tr("Index");
       case NAME:
         return tr("Name");
       case SECTION_NAME:
@@ -30,28 +33,32 @@ QVariant SymbolItemModel::headerData(int section, Qt::Orientation orientation, i
         break;
     }
   }
+
   return QVariant();
 }
 
 int SymbolItemModel::rowCount(const QModelIndex& parent) const
 {
+  (void)parent;
   return _symbolTable.size();
 }
 
 int SymbolItemModel::columnCount(const QModelIndex& parent) const
 {
+  (void)parent;
   return SymbolItemModel::Columns::MAX;
 }
 
 QVariant SymbolItemModel::data(const QModelIndex& index, int role) const
 {
-  if (!index.isValid())
-    return QVariant();
+  if (!index.isValid()) { return QVariant(); }
 
   if (role == Qt::DisplayRole)
   {
     switch (index.column())
     {
+      case INDEX:
+        return static_cast<qulonglong>(_symbolTable[index.row()].Index);
       case NAME:
         return _symbolTable[index.row()].Name;
       case SECTION_NAME:
@@ -69,27 +76,28 @@ QVariant SymbolItemModel::data(const QModelIndex& index, int role) const
         break;
     }
   }
-  else if ((role == Qt::CheckStateRole) && (index.column() == NAME))
+  else if ((role == Qt::CheckStateRole) && (index.column() == Columns::INDEX))
   {
-    return _symbolCheckState[index.row()];
+    return _symbolTable[index.row()].Display ? Qt::Checked : Qt::Unchecked;
   }
+
   return QVariant();
 }
 
 Qt::ItemFlags SymbolItemModel::flags(const QModelIndex& index) const
 {
-  if (index.column() == Columns::NAME)
+  if (index.column() == Columns::INDEX)
   {
-    return QAbstractItemModel::flags(index) | Qt::ItemIsUserCheckable;
+    return QAbstractTableModel::flags(index) | Qt::ItemIsUserCheckable;
   }
-  return QAbstractItemModel::flags(index);
+  return QAbstractTableModel::flags(index);
 }
 
 bool SymbolItemModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
   if (index.isValid() && role == Qt::CheckStateRole)
   {
-    _symbolCheckState[index.row()] = static_cast<Qt::CheckState>(value.toInt());
+    _symbolTable[index.row()].Display = (Qt::Checked == static_cast<Qt::CheckState>(value.toInt()));
     emit dataChanged(index, index, { role });
     return true;
   }
