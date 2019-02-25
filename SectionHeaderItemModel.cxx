@@ -62,17 +62,17 @@ QVariant SectionHeaderItemModel::data(const QModelIndex& index, int role) const
     switch (index.column())
     {
       case INDEX:
-        return static_cast<qulonglong>(_sectionHeaders[index.row()].Index);
+        return QVariant::fromValue(_sectionHeaders[index.row()].Index);
       case NAME:
         return _sectionHeaders[index.row()].Name;
       case SIZE:
-        return static_cast<qulonglong>(_sectionHeaders[index.row()].Size);
+        return QVariant::fromValue<qulonglong>(_sectionHeaders[index.row()].Size);
       case VMA:
-        return static_cast<qulonglong>(_sectionHeaders[index.row()].Vma);
+        return QVariant::fromValue<qulonglong>(_sectionHeaders[index.row()].Vma);
       case LMA:
-        return static_cast<qulonglong>(_sectionHeaders[index.row()].Lma);
+        return QVariant::fromValue<qulonglong>(_sectionHeaders[index.row()].Lma);
       case FILE_OFF:
-        return static_cast<qulonglong>(_sectionHeaders[index.row()].FileOff);
+        return QVariant::fromValue<qulonglong>(_sectionHeaders[index.row()].FileOff);
       case TYPES:
       {
         const auto metaEnum = QMetaEnum::fromType<SectionHeader::Flag>();

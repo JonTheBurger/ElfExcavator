@@ -39,9 +39,15 @@ add_executable(${PROJECT_NAME}
     BinUtilsDialog.cxx
     BinUtilsDialog.hxx
     BinUtilsDialog.ui
+    FilterHeaderView.cxx
+    FilterHeaderView.hxx
+    HexNumberDelegate.cxx
+    HexNumberDelegate.hxx
     MainWindow.cxx
     MainWindow.hxx
     MainWindow.ui
+    MultiFilterProxyModel.cxx
+    MultiFilterProxyModel.hxx
     MaxStore.hxx
     SectionHeader.cxx
     SectionHeader.hxx

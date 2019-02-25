@@ -32,13 +32,13 @@ public:
   static Flag                ParseFromObjdumpChar(char in);
   static std::vector<Symbol> ParseFromObjdump(const QString& output);
 
-  QString Name{};
-  QString SectionName{};
-  size_t  Index{};
-  size_t  Address{};  /// Or Value
-  size_t  Size{};     /// Or Alignment
-  Flags   Types{};
-  bool    Display{};
+  QString  Name{};
+  QString  SectionName{};
+  size_t   Address{};  /// Or Value
+  size_t   Size{};     /// Or Alignment
+  uint32_t Index{};
+  Flags    Types{};
+  bool     Display{};
 };
 Q_DECLARE_OPERATORS_FOR_FLAGS(Symbol::Flags)
 

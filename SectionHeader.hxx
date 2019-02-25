@@ -28,15 +28,15 @@ public:
   operator QString() const;
   static std::vector<SectionHeader> ParseFromObjdump(const QString& output);
 
-  QString Name{};
-  size_t  Index{};
-  size_t  Size{};
-  size_t  Vma{};
-  size_t  Lma{};
-  size_t  FileOff{};
-  Flags   Types{};
-  bool    Display{};
-  uint8_t Align{};
+  QString  Name{};
+  size_t   Size{};
+  size_t   Vma{};
+  size_t   Lma{};
+  size_t   FileOff{};
+  uint32_t Index{};
+  Flags    Types{};
+  bool     Display{};
+  uint8_t  Align{};
 };
 Q_DECLARE_OPERATORS_FOR_FLAGS(SectionHeader::Flags)
 

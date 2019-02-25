@@ -58,15 +58,15 @@ QVariant SymbolItemModel::data(const QModelIndex& index, int role) const
     switch (index.column())
     {
       case INDEX:
-        return static_cast<qulonglong>(_symbolTable[index.row()].Index);
+        return QVariant::fromValue(_symbolTable[index.row()].Index);
       case NAME:
         return _symbolTable[index.row()].Name;
       case SECTION_NAME:
         return _symbolTable[index.row()].SectionName;
       case ADDRESS:
-        return static_cast<qulonglong>(_symbolTable[index.row()].Address);
+        return QVariant::fromValue<qulonglong>(_symbolTable[index.row()].Address);
       case SIZE:
-        return static_cast<qulonglong>(_symbolTable[index.row()].Size);
+        return QVariant::fromValue<qulonglong>(_symbolTable[index.row()].Size);
       case TYPES:
       {
         const auto metaEnum = QMetaEnum::fromType<Symbol::Flag>();

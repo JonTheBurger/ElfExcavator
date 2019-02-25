@@ -3,11 +3,13 @@
 #include <QDebug>
 #include <QProcess>
 #include <QSettings>
-#include <QSortFilterProxyModel>
 #include <QtCharts>
 #include <algorithm>
 
 #include "BinUtils.hxx"
+#include "FilterHeaderView.hxx"
+#include "HexNumberDelegate.hxx"
+#include "MultiFilterProxyModel.hxx"
 #include "SectionHeader.hxx"
 #include "SectionHeaderItemModel.hxx"
 #include "Symbol.hxx"
@@ -16,14 +18,16 @@
 
 // https://doc.qt.io/qt-5.9/classes.html
 /// TODO: Chart colors
-/// TODO: Display Hex QStyledItemDelegate https://doc.qt.io/qt-5/qtwidgets-itemviews-stardelegate-example.html
+/// TODO: Enable Copy from cell
 /// TODO: Zoom Chart
 /// TODO: View Menu
 /// TODO: Plug the leaks
-/// BIG TODO: Filter https://doc.qt.io/qt-5/qsortfilterproxymodel.html#filterAcceptsRow
+/// BIG TODO: Filter by hex number
 /// BIG TODO: Syntax Highlighting
-/// BIG TODO: Options Menu (25 count, chart theme, chart animations)
+/// BIG TODO: Options Menu (25 count, chart theme, chart animations, regex options)
 /// BIG TODO: Installer
+/// BIG TODO: All others chart item
+/// BIG TODO: Uncheck all
 class MainWindow::MainWindowPrivate {
   Q_DISABLE_COPY(MainWindowPrivate)
 
@@ -31,6 +35,7 @@ public:
   explicit MainWindowPrivate(BinUtils* binUtils)
       : Ui{ std::make_unique<Ui::MainWindow>() }
       , BinUtil{ *binUtils }
+      , HexDelegate{ std::make_unique<HexNumberDelegate>() }
   {
     Q_ASSERT(binUtils);
   }
@@ -84,7 +89,7 @@ public:
     }
 
     Ui->chartView->chart()->removeAllSeries();
-    Ui->chartView->chart()->addSeries(series);
+    Ui->chartView->chart()->addSeries(series);  // WARNING: Memory leak?
   }
 
   void OnSelectedSectionHeaderChanged()
@@ -195,10 +200,11 @@ public:
 
   std::unique_ptr<Ui::MainWindow>        Ui;
   BinUtils&                              BinUtil;
-  std::unique_ptr<QSortFilterProxyModel> SectionModel;
-  std::unique_ptr<QSortFilterProxyModel> SymbolModel;
+  std::unique_ptr<MultiFilterProxyModel> SectionModel;
+  std::unique_ptr<MultiFilterProxyModel> SymbolModel;
   std::vector<SectionHeader>             SectionHeaders;
   std::vector<Symbol>                    SymbolTable;
+  std::unique_ptr<HexNumberDelegate>     HexDelegate;
   bool                                   IsInit{ false };
 };
 
@@ -234,11 +240,16 @@ void MainWindow::showEvent(QShowEvent* e)
       [this](const QString& out) {
         _impl->SectionHeaders    = SectionHeader::ParseFromObjdump(out);
         auto* sectionHeaderModel = new SectionHeaderItemModel(_impl->SectionHeaders, this);
-        _impl->SectionModel      = std::make_unique<QSortFilterProxyModel>();
+        _impl->SectionModel      = std::make_unique<MultiFilterProxyModel>();
         _impl->SectionModel->setSourceModel(sectionHeaderModel);
         _impl->Ui->sectionHeaderTableView->setModel(_impl->SectionModel.get());
+        _impl->Ui->sectionHeaderTableView->setItemDelegate(_impl->HexDelegate.get());
+        auto* header = new FilterHeaderView(_impl->Ui->sectionHeaderTableView);
+        _impl->Ui->sectionHeaderTableView->setHorizontalHeader(header);
+        header->setVisible(true);
         _impl->Ui->sectionHeaderTableView->setSortingEnabled(true);
         _impl->Ui->sectionHeaderTableView->sortByColumn(SectionHeaderItemModel::INDEX, Qt::AscendingOrder);
+        QObject::connect(header, &FilterHeaderView::filterTextChanged, _impl->SectionModel.get(), &MultiFilterProxyModel::setColumnFilter);
 
         connect(
           sectionHeaderModel,
@@ -262,11 +273,16 @@ void MainWindow::showEvent(QShowEvent* e)
       [this](const QString& out) {
         _impl->SymbolTable     = Symbol::ParseFromObjdump(out);
         auto* symbolTableModel = new SymbolItemModel(_impl->SymbolTable, this);
-        _impl->SymbolModel     = std::make_unique<QSortFilterProxyModel>();
+        _impl->SymbolModel     = std::make_unique<MultiFilterProxyModel>();
         _impl->SymbolModel->setSourceModel(symbolTableModel);
         _impl->Ui->symbolTableTableView->setModel(_impl->SymbolModel.get());
+        _impl->Ui->symbolTableTableView->setItemDelegate(_impl->HexDelegate.get());
+        auto* header = new FilterHeaderView(_impl->Ui->symbolTableTableView);
+        _impl->Ui->symbolTableTableView->setHorizontalHeader(header);
+        header->setVisible(true);
         _impl->Ui->symbolTableTableView->setSortingEnabled(true);
         _impl->Ui->symbolTableTableView->sortByColumn(SymbolItemModel::INDEX, Qt::AscendingOrder);
+        QObject::connect(header, &FilterHeaderView::filterTextChanged, _impl->SymbolModel.get(), &MultiFilterProxyModel::setColumnFilter);
 
         connect(
           symbolTableModel,
