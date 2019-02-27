@@ -132,6 +132,13 @@ p, li { white-space: pre-wrap; }
    <header>QtCharts</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>sectionHeaderTableView</tabstop>
+  <tabstop>disassemblyTextBrowser</tabstop>
+  <tabstop>chartView</tabstop>
+  <tabstop>symbolTableTableView</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

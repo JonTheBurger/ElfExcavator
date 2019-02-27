@@ -39,6 +39,8 @@ add_executable(${PROJECT_NAME}
     BinUtilsDialog.cxx
     BinUtilsDialog.hxx
     BinUtilsDialog.ui
+    DisassemblyHighlighter.cxx
+    DisassemblyHighlighter.hxx
     FilterHeaderView.cxx
     FilterHeaderView.hxx
     HexNumberDelegate.cxx

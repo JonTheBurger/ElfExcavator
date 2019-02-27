@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "BinUtils.hxx"
+#include "DisassemblyHighlighter.hxx"
 #include "FilterHeaderView.hxx"
 #include "HexNumberDelegate.hxx"
 #include "MultiFilterProxyModel.hxx"
@@ -21,13 +22,21 @@
 /// TODO: Enable Copy from cell
 /// TODO: Zoom Chart
 /// TODO: View Menu
+/// TODO: Change default file search to all files
+/// TODO: Number of items highlighted in gutter
+/// TODO: Space datagrid normally
+/// TODO: Ctrl+F Find in disassembly view
+/// TODO: Disable highlighting in non-disasm
 /// TODO: Plug the leaks
+/// TODO: Evaluate memory/perf of DisassemblyHighlighter
 /// BIG TODO: Filter by hex number
-/// BIG TODO: Syntax Highlighting
+/// BIG TODO: Click on pieslice to highlight symbol?
 /// BIG TODO: Options Menu (25 count, chart theme, chart animations, regex options)
 /// BIG TODO: Installer
 /// BIG TODO: All others chart item
 /// BIG TODO: Uncheck all
+/// BIG TODO: Split assembly and source?
+/// BIG TODO: Click on function to navigate
 class MainWindow::MainWindowPrivate {
   Q_DISABLE_COPY(MainWindowPrivate)
 
@@ -214,6 +223,7 @@ MainWindow::MainWindow(BinUtils* binUtils, QWidget* parent)
 {
   _impl->Ui->setupUi(this);
   _impl->SetupChart();
+  auto*     highlighter = new DisassemblyHighlighter(_impl->Ui->disassemblyTextBrowser->document());
   QSettings settings;
   resize(settings.value("MainWindow::size", size()).toSize());
   move(settings.value("MainWindow::pos", pos()).toPoint());
