@@ -18,15 +18,11 @@
 #include "ui_MainWindow.h"
 
 // https://doc.qt.io/qt-5.9/classes.html
-/// TODO: Chart colors
-/// TODO: Enable Copy from cell
-/// TODO: Zoom Chart
-/// TODO: View Menu
-/// TODO: Change default file search to all files
-/// TODO: Number of items highlighted in gutter
 /// TODO: Space datagrid normally
-/// TODO: Ctrl+F Find in disassembly view
-/// TODO: Disable highlighting in non-disasm
+/// TODO: Ctrl+Shift+F Find in disassembly view (derived class)
+/// TODO: Chart colors
+/// TODO: Forward/back button support (goto last symbol)
+/// TODO: View Menu (show dock widget)
 /// TODO: Plug the leaks
 /// TODO: Evaluate memory/perf of DisassemblyHighlighter
 /// BIG TODO: Filter by hex number
@@ -35,6 +31,7 @@
 /// BIG TODO: Installer
 /// BIG TODO: All others chart item
 /// BIG TODO: Uncheck all
+/// BIG TODO: Background thread
 /// BIG TODO: Split assembly and source?
 /// BIG TODO: Click on function to navigate
 class MainWindow::MainWindowPrivate {
@@ -45,6 +42,7 @@ public:
       : Ui{ std::make_unique<Ui::MainWindow>() }
       , BinUtil{ *binUtils }
       , HexDelegate{ std::make_unique<HexNumberDelegate>() }
+      , Highlighter{ std::make_unique<DisassemblyHighlighter>() }
   {
     Q_ASSERT(binUtils);
   }
@@ -75,11 +73,20 @@ public:
         if (section.Display)
         {
           QPieSlice* const slice = series->append(section.Name, section.Size);
-          slice->setLabelVisible();
         }
       }
 
       Ui->chartView->chart()->setTitle(tr("Section Headers"));
+      Highlighter->Enabled = false;
+      connect(series, &QPieSeries::clicked, [this](QPieSlice* slice) {
+        auto it = std::find_if(SectionHeaders.begin(), SectionHeaders.end(), [&slice](auto&& header) { return header.Display && (header.Name == slice->label()); });
+        if (it != SectionHeaders.end())
+        {
+          auto index = SectionModel->sourceModel()->index(it->Index, 0);
+          index      = SectionModel->mapFromSource(index);
+          Ui->sectionHeaderTableView->setCurrentIndex(index);
+        }
+      });
     }
     else if (tab == MainWindow::Tab::SYMBOLS)
     {
@@ -90,35 +97,50 @@ public:
         if (symbol.Display)
         {
           QPieSlice* const slice = series->append(symbol.Name, symbol.Size);
-          slice->setLabelVisible();
         }
       }
 
       Ui->chartView->chart()->setTitle(tr("Symbols"));
+      Highlighter->Enabled = true;
+      connect(series, &QPieSeries::clicked, [this](QPieSlice* slice) {
+        auto it = std::find_if(SymbolTable.begin(), SymbolTable.end(), [&slice](auto&& header) { return header.Display && (header.Name == slice->label()); });
+        if (it != SymbolTable.end())
+        {
+          auto index = SymbolModel->sourceModel()->index(it->Index, 0);
+          index      = SymbolModel->mapFromSource(index);
+          Ui->symbolTableTableView->setCurrentIndex(index);
+        }
+      });
     }
 
     Ui->chartView->chart()->removeAllSeries();
     Ui->chartView->chart()->addSeries(series);  // WARNING: Memory leak?
+    connect(series, &QPieSeries::hovered, [](QPieSlice* slice, bool state) {
+      //      slice->setExploded(state);
+      slice->setLabelVisible(state);
+    });
   }
 
   void OnSelectedSectionHeaderChanged()
   {
-    const auto&& indices = Ui->sectionHeaderTableView->selectionModel()->selectedIndexes();
+    const auto*  selection = Ui->sectionHeaderTableView->selectionModel();
+    const auto&& indices   = selection->selectedIndexes();
     if (indices.empty()) { return; }
+    Ui->statusbar->showMessage(tr("%1 rows selected").arg(selection->selectedRows().count()));
 
     const size_t   row         = SectionModel->mapToSource(indices.first()).row();
     const QString& sectionName = SectionHeaders.at(row).Name;
 
-    if (SectionHeaders[row].Display)
-    {
-      SectionModel->mapToSource(indices.first()).data(Qt::CheckStateRole);
-      auto&& slices = static_cast<QPieSeries*>(Ui->chartView->chart()->series().first())->slices();
-      auto   it     = std::find_if(slices.begin(), slices.end(), [&sectionName](QPieSlice* s) { return s->label() == sectionName; });
-      if (it != slices.end())
-      {
-        (*it)->setExploded(true);
-      }
-    }
+    //    if (SectionHeaders[row].Display)
+    //    {
+    //            SectionModel->mapToSource(indices.first()).data(Qt::CheckStateRole);
+    //            auto&& slices = static_cast<QPieSeries*>(Ui->chartView->chart()->series().first())->slices();
+    //            auto   it     = std::find_if(slices.begin(), slices.end(), [&sectionName](QPieSlice* s) { return s->label() == sectionName; });
+    //            if (it != slices.end())
+    //            {
+    //              (*it)->setExploded(true);
+    //            }
+    //    }
 
     BinUtil.ExecObjdump(
       { "-sj", sectionName, BinUtil.ElfFile() },
@@ -153,23 +175,23 @@ public:
 
   void OnSelectedSymbolChanged()
   {
-    const auto* thing = Ui->symbolTableTableView->selectionModel();
-    Q_ASSERT(thing);
-    const auto&& indices = thing->selectedIndexes();
+    const auto*  selection = Ui->symbolTableTableView->selectionModel();
+    const auto&& indices   = selection->selectedIndexes();
     if (indices.empty()) { return; }
+    Ui->statusbar->showMessage(tr("%1 rows selected").arg(selection->selectedRows().count()));
 
     const size_t  row    = SymbolModel->mapToSource(indices.first()).row();
     const Symbol& symbol = SymbolTable.at(row);
 
-    if (SymbolTable[row].Display)
-    {
-      auto&& slices = static_cast<QPieSeries*>(Ui->chartView->chart()->series().first())->slices();
-      auto   it     = std::find_if(slices.begin(), slices.end(), [&symbol](QPieSlice* s) { return s->label() == symbol.Name; });
-      if (it != slices.end())
-      {
-        (*it)->setExploded(true);
-      }
-    }
+    //    if (SymbolTable[row].Display)
+    //    {
+    //      auto&& slices = static_cast<QPieSeries*>(Ui->chartView->chart()->series().first())->slices();
+    //      auto   it     = std::find_if(slices.begin(), slices.end(), [&symbol](QPieSlice* s) { return s->label() == symbol.Name; });
+    //      if (it != slices.end())
+    //      {
+    //        (*it)->setExploded(true);
+    //      }
+    //    }
 
     BinUtil.ExecObjdump(
       { "--start-address",
@@ -207,14 +229,15 @@ public:
     Ui->chartView->update();
   }
 
-  std::unique_ptr<Ui::MainWindow>        Ui;
-  BinUtils&                              BinUtil;
-  std::unique_ptr<MultiFilterProxyModel> SectionModel;
-  std::unique_ptr<MultiFilterProxyModel> SymbolModel;
-  std::vector<SectionHeader>             SectionHeaders;
-  std::vector<Symbol>                    SymbolTable;
-  std::unique_ptr<HexNumberDelegate>     HexDelegate;
-  bool                                   IsInit{ false };
+  std::unique_ptr<Ui::MainWindow>         Ui;
+  BinUtils&                               BinUtil;
+  std::unique_ptr<MultiFilterProxyModel>  SectionModel;
+  std::unique_ptr<MultiFilterProxyModel>  SymbolModel;
+  std::vector<SectionHeader>              SectionHeaders;
+  std::vector<Symbol>                     SymbolTable;
+  std::unique_ptr<HexNumberDelegate>      HexDelegate;
+  std::unique_ptr<DisassemblyHighlighter> Highlighter;
+  bool                                    IsInit{ false };
 };
 
 MainWindow::MainWindow(BinUtils* binUtils, QWidget* parent)
@@ -223,7 +246,7 @@ MainWindow::MainWindow(BinUtils* binUtils, QWidget* parent)
 {
   _impl->Ui->setupUi(this);
   _impl->SetupChart();
-  auto*     highlighter = new DisassemblyHighlighter(_impl->Ui->disassemblyTextBrowser->document());
+  _impl->Highlighter->setDocument(_impl->Ui->disassemblyTextBrowser->document());
   QSettings settings;
   resize(settings.value("MainWindow::size", size()).toSize());
   move(settings.value("MainWindow::pos", pos()).toPoint());
@@ -231,6 +254,8 @@ MainWindow::MainWindow(BinUtils* binUtils, QWidget* parent)
   connect(_impl->Ui->tabWidget, &QTabWidget::currentChanged, [this](int tab) {
     _impl->OnTabChanged(static_cast<Tab>(tab));
   });
+  connect(_impl->Ui->zoomInButton, &QPushButton::pressed, _impl->Ui->chartView, &PieChart::zoomIn);
+  connect(_impl->Ui->zoomOutButton, &QPushButton::pressed, _impl->Ui->chartView, &PieChart::zoomOut);
 }
 
 MainWindow::~MainWindow()
@@ -245,6 +270,38 @@ void MainWindow::showEvent(QShowEvent* e)
   QMainWindow::showEvent(e);
   if (!_impl->IsInit)
   {
+    connect(_impl->Ui->disassemblySearchLineEdit, &QLineEdit::returnPressed, [this]() {
+      QString query = _impl->Ui->disassemblySearchLineEdit->text();
+      if (!query.isEmpty())
+      {
+        const bool found = _impl->Ui->disassemblyTextBrowser->find(query);
+        if (!found)
+        {
+          _impl->Ui->disassemblyTextBrowser->moveCursor(QTextCursor::Start);
+          _impl->Ui->disassemblyTextBrowser->find(query);
+        }
+      }
+    });
+    connect(_impl->Ui->disassemblySearchLineEdit, &QLineEdit::textChanged, [this](const QString& query) {
+      if (!query.isEmpty())
+      {
+        QList<QTextEdit::ExtraSelection> extraSelections;
+
+        _impl->Ui->disassemblyTextBrowser->moveCursor(QTextCursor::Start);
+        QColor color = QColor(Qt::gray).lighter(130);
+
+        while (_impl->Ui->disassemblyTextBrowser->find(query))
+        {
+          QTextEdit::ExtraSelection extra;
+          extra.format.setBackground(color);
+          extra.cursor = _impl->Ui->disassemblyTextBrowser->textCursor();
+          extraSelections.append(extra);
+        }
+
+        _impl->Ui->disassemblyTextBrowser->setExtraSelections(extraSelections);
+      }
+    });
+
     _impl->BinUtil.ExecObjdump(
       { "-hw", _impl->BinUtil.ElfFile() },
       [this](const QString& out) {

@@ -39,10 +39,13 @@ add_executable(${PROJECT_NAME}
     BinUtilsDialog.cxx
     BinUtilsDialog.hxx
     BinUtilsDialog.ui
+    CircularIterator.hxx
     DisassemblyHighlighter.cxx
     DisassemblyHighlighter.hxx
     FilterHeaderView.cxx
     FilterHeaderView.hxx
+    FindLineEdit.cxx
+    FindLineEdit.hxx
     HexNumberDelegate.cxx
     HexNumberDelegate.hxx
     MainWindow.cxx
@@ -51,6 +54,8 @@ add_executable(${PROJECT_NAME}
     MultiFilterProxyModel.cxx
     MultiFilterProxyModel.hxx
     MaxStore.hxx
+    PieChart.cxx
+    PieChart.hxx
     SectionHeader.cxx
     SectionHeader.hxx
     SectionHeaderItemModel.cxx
@@ -59,9 +64,12 @@ add_executable(${PROJECT_NAME}
     Symbol.hxx
     SymbolItemModel.cxx
     SymbolItemModel.hxx
+    TableView.cxx
+    TableView.hxx
 )
 target_include_directories(${PROJECT_NAME}
     PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 target_link_libraries(${PROJECT_NAME}

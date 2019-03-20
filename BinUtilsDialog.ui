@@ -6,15 +6,29 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>505</width>
+    <height>142</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="4" column="1">
+   <item row="0" column="0">
+    <widget class="QLineEdit" name="objdumpLineEdit">
+     <property name="placeholderText">
+      <string>objdump</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QPushButton" name="elfButton">
+     <property name="text">
+      <string>Browse</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
     <widget class="QPushButton" name="continueButton">
      <property name="enabled">
       <bool>false</bool>
@@ -25,37 +39,9 @@
     </widget>
    </item>
    <item row="1" column="0">
-    <widget class="QLineEdit" name="readelfLineEdit">
+    <widget class="QLineEdit" name="elfLineEdit">
      <property name="placeholderText">
-      <string>readelf</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QPushButton" name="nmButton">
-     <property name="text">
-      <string>Browse</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QPushButton" name="readelfButton">
-     <property name="text">
-      <string>Browse</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLineEdit" name="nmLineEdit">
-     <property name="placeholderText">
-      <string>nm</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0">
-    <widget class="QLineEdit" name="objdumpLineEdit">
-     <property name="placeholderText">
-      <string>objdump</string>
+      <string>program.elf</string>
      </property>
     </widget>
    </item>
@@ -66,29 +52,11 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
-    <widget class="QLineEdit" name="elfLineEdit">
-     <property name="placeholderText">
-      <string>program.elf</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="QPushButton" name="elfButton">
-     <property name="text">
-      <string>Browse</string>
-     </property>
-    </widget>
-   </item>
   </layout>
  </widget>
  <tabstops>
   <tabstop>objdumpLineEdit</tabstop>
   <tabstop>objdumpButton</tabstop>
-  <tabstop>readelfLineEdit</tabstop>
-  <tabstop>readelfButton</tabstop>
-  <tabstop>nmLineEdit</tabstop>
-  <tabstop>nmButton</tabstop>
   <tabstop>elfLineEdit</tabstop>
   <tabstop>elfButton</tabstop>
   <tabstop>continueButton</tabstop>

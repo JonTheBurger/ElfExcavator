@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>536</width>
-    <height>423</height>
+    <width>556</width>
+    <height>422</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,13 +20,13 @@
       <property name="currentIndex">
        <number>0</number>
       </property>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="sectionTab">
        <attribute name="title">
         <string>Sections</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
-         <widget class="QTableView" name="sectionHeaderTableView">
+         <widget class="TableView" name="sectionHeaderTableView">
           <property name="selectionMode">
            <enum>QAbstractItemView::ExtendedSelection</enum>
           </property>
@@ -37,19 +37,24 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_2">
+      <widget class="QWidget" name="symbolTab">
        <attribute name="title">
         <string>Symbols</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="0">
-         <widget class="QTableView" name="symbolTableTableView">
+         <widget class="TableView" name="symbolTableTableView">
           <property name="selectionBehavior">
            <enum>QAbstractItemView::SelectRows</enum>
           </property>
          </widget>
         </item>
        </layout>
+      </widget>
+      <widget class="QWidget" name="settingsTab">
+       <attribute name="title">
+        <string>Settings</string>
+       </attribute>
       </widget>
      </widget>
     </item>
@@ -60,7 +65,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>536</width>
+     <width>556</width>
      <height>20</height>
     </rect>
    </property>
@@ -75,7 +80,7 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QGridLayout" name="gridLayout_4">
-     <item row="0" column="0">
+     <item row="1" column="0">
       <widget class="QTextBrowser" name="disassemblyTextBrowser">
        <property name="font">
         <font>
@@ -106,6 +111,13 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
+     <item row="0" column="0">
+      <widget class="FindLineEdit" name="disassemblySearchLineEdit">
+       <property name="placeholderText">
+        <string>Find...</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
   </widget>
@@ -118,8 +130,66 @@ p, li { white-space: pre-wrap; }
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2">
     <layout class="QGridLayout" name="gridLayout_5">
-     <item row="0" column="0">
-      <widget class="QChartView" name="chartView"/>
+     <item row="1" column="3">
+      <widget class="QPushButton" name="zoomOutButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>24</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>-</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QCheckBox" name="checkBox">
+       <property name="text">
+        <string>Show All Others</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QPushButton" name="zoomInButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>24</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>+</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0" colspan="4">
+      <widget class="PieChart" name="chartView"/>
+     </item>
+     <item row="1" column="1">
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
     </layout>
    </widget>
@@ -127,9 +197,19 @@ p, li { white-space: pre-wrap; }
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QChartView</class>
+   <class>PieChart</class>
    <extends>QGraphicsView</extends>
-   <header>QtCharts</header>
+   <header>PieChart.hxx</header>
+  </customwidget>
+  <customwidget>
+   <class>TableView</class>
+   <extends>QTableView</extends>
+   <header>TableView.hxx</header>
+  </customwidget>
+  <customwidget>
+   <class>FindLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>FindLineEdit.hxx</header>
   </customwidget>
  </customwidgets>
  <tabstops>

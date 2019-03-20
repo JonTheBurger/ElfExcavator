@@ -9,7 +9,8 @@ FilterHeaderView::FilterHeaderView(QTableView* parent)
   for (auto col = 0; col < parent->model()->columnCount(); ++col)
   {
     _lineEdits.push_back(new QLineEdit(this));
-    _lineEdits[col]->setPlaceholderText(tr("Filter"));
+    _lineEdits[col]->setClearButtonEnabled(true);
+    _lineEdits[col]->setPlaceholderText(tr("Filter..."));
     connect(_lineEdits[col], &QLineEdit::textChanged, [this, col](const QString& text) {
       filterTextChanged(col, text);
     });

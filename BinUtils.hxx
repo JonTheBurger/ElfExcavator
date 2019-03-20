@@ -13,10 +13,6 @@ public:
 
   const QString& Objdump() const;
   bool           SetObjdump(const QString& value);
-  const QString& Readelf() const;
-  bool           SetReadelf(const QString& value);
-  const QString& Nm() const;
-  bool           SetNm(const QString& value);
   const QString& ElfFile() const;
   bool           SetElfFile(const QString& value);
 
@@ -38,8 +34,6 @@ public:
 
 private:
   QString _objdump;
-  QString _readelf;
-  QString _nm;
   QString _elfFile;
 };
 
