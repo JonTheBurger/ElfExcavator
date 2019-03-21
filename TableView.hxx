@@ -11,11 +11,12 @@ class TableView : public QTableView {
 public:
   explicit TableView(QWidget* parent = nullptr);
   ~TableView();
+  void ResizeColumns();
   void setModel(QAbstractItemModel* model) override;
 
 protected:
   void keyPressEvent(QKeyEvent* event) override;
-  void resizeEvent(QResizeEvent* event) override;
+  void showEvent(QShowEvent* event) override;
 
 private:
   std::unique_ptr<FilterHeaderView>      _header;

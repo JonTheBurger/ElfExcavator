@@ -9,6 +9,8 @@
 #include "Symbol.hxx"
 
 class BinUtils;
+class DisassemblyHighlighter;
+class QItemSelection;
 namespace Ui {
 class MainWindow;
 }
@@ -29,12 +31,21 @@ public:
   ~MainWindow() final;
 
 protected:
-  void showEvent(QShowEvent* e) final;
   void changeEvent(QEvent* e) final;
 
 private:
-  class MainWindowPrivate;
-  const std::unique_ptr<MainWindowPrivate> _impl;
+  void SetupChart();
+  void OnTabChanged(const MainWindow::Tab tab);
+  void OnSelectedSectionHeaderChanged(const QItemSelection& selected, const QItemSelection& deselected);
+  void OnShowHeaderChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles);
+  void OnSelectedSymbolChanged(const QItemSelection& selected, const QItemSelection& deselected);
+  void OnShowSymbolChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles);
+
+  std::unique_ptr<Ui::MainWindow>         _ui;
+  BinUtils&                               _binUtils;
+  std::vector<SectionHeader>              _sectionHeaders;
+  std::vector<Symbol>                     _symbolTable;
+  std::unique_ptr<DisassemblyHighlighter> _highlighter;
 };
 
 #endif  // MAINWINDOW_HXX

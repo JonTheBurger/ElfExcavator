@@ -15,12 +15,16 @@ int main(int argc, char* argv[])
   QApplication::setApplicationName("elf-browser");
   QSettings settings;
 
-  BinUtils       binUtils;
-  MainWindow     window(&binUtils);
-  BinUtilsDialog dialog(&binUtils);
+  BinUtils                    binUtils;
+  BinUtilsDialog              dialog(&binUtils);
+  std::unique_ptr<MainWindow> window;
 
   dialog.show();
-  QObject::connect(&dialog, &QDialog::accepted, [&window]() { window.show(); });
+  QObject::connect(&dialog, &QDialog::accepted, [&window, &binUtils]() {
+    auto w = std::make_unique<MainWindow>(&binUtils);
+    std::swap(window, w);
+    window->show();
+  });
 
   return QApplication::exec();
 }

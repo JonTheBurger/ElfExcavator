@@ -21,6 +21,16 @@ TableView::TableView(QWidget* parent)
   setItemDelegate(_delegate.get());
 }
 
+void TableView::ResizeColumns()
+{
+  if (_header)
+  {
+    _header->resizeSections(QHeaderView::ResizeMode::Stretch);
+    _header->resizeSections(QHeaderView::ResizeMode::Interactive);
+    _header->updateGeometries();
+  }
+}
+
 TableView::~TableView() = default;
 
 void TableView::setModel(QAbstractItemModel* model)
@@ -70,17 +80,8 @@ void TableView::keyPressEvent(QKeyEvent* event)
   }
 }
 
-void TableView::resizeEvent(QResizeEvent* event)
+void TableView::showEvent(QShowEvent* event)
 {
-  if (_header)
-  {
-    _header->setSectionResizeMode(QHeaderView::Stretch);
-  }
-
-  QTableView::resizeEvent(event);
-
-  if (_header)
-  {
-    _header->setSectionResizeMode(QHeaderView::Interactive);
-  }
+  ResizeColumns();
+  QTableView::showEvent(event);
 }
