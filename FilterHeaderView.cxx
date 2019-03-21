@@ -28,15 +28,21 @@ FilterHeaderView::~FilterHeaderView() = default;
 QSize FilterHeaderView::sizeHint() const
 {
   QSize size = QHeaderView::sizeHint();
-  size.setHeight(size.height() + _lineEdits.at(0)->sizeHint().height());
+  if (!_lineEdits.empty())
+  {
+    size.setHeight(size.height() + _lineEdits[0]->sizeHint().height());
+  }
   return size;
 }
 
 void FilterHeaderView::updateGeometries()
 {
-  setViewportMargins(0, 0, 0, _lineEdits.at(0)->sizeHint().height());
-  QHeaderView::updateGeometries();
-  drawLabels();
+  if (!_lineEdits.empty())
+  {
+    setViewportMargins(0, 0, 0, _lineEdits[0]->sizeHint().height());
+    QHeaderView::updateGeometries();
+    drawLabels();
+  }
 }
 
 void FilterHeaderView::drawLabels()

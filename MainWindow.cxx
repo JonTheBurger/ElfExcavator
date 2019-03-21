@@ -8,8 +8,6 @@
 
 #include "BinUtils.hxx"
 #include "DisassemblyHighlighter.hxx"
-#include "FilterHeaderView.hxx"
-#include "HexNumberDelegate.hxx"
 #include "MultiFilterProxyModel.hxx"
 #include "SectionHeader.hxx"
 #include "SectionHeaderItemModel.hxx"
@@ -18,7 +16,6 @@
 #include "ui_MainWindow.h"
 
 // https://doc.qt.io/qt-5.9/classes.html
-/// TODO: Space datagrid normally
 /// TODO: Ctrl+Shift+F Find in disassembly view (derived class)
 /// TODO: Chart colors
 /// TODO: Forward/back button support (goto last symbol)
@@ -41,7 +38,6 @@ public:
   explicit MainWindowPrivate(BinUtils* binUtils)
       : Ui{ std::make_unique<Ui::MainWindow>() }
       , BinUtil{ *binUtils }
-      , HexDelegate{ std::make_unique<HexNumberDelegate>() }
       , Highlighter{ std::make_unique<DisassemblyHighlighter>() }
   {
     Q_ASSERT(binUtils);
@@ -82,8 +78,8 @@ public:
         auto it = std::find_if(SectionHeaders.begin(), SectionHeaders.end(), [&slice](auto&& header) { return header.Display && (header.Name == slice->label()); });
         if (it != SectionHeaders.end())
         {
-          auto index = SectionModel->sourceModel()->index(it->Index, 0);
-          index      = SectionModel->mapFromSource(index);
+          auto index = static_cast<MultiFilterProxyModel*>(Ui->sectionHeaderTableView->model())->sourceModel()->index(it->Index, 0);
+          index      = static_cast<MultiFilterProxyModel*>(Ui->sectionHeaderTableView->model())->mapFromSource(index);
           Ui->sectionHeaderTableView->setCurrentIndex(index);
         }
       });
@@ -106,8 +102,8 @@ public:
         auto it = std::find_if(SymbolTable.begin(), SymbolTable.end(), [&slice](auto&& header) { return header.Display && (header.Name == slice->label()); });
         if (it != SymbolTable.end())
         {
-          auto index = SymbolModel->sourceModel()->index(it->Index, 0);
-          index      = SymbolModel->mapFromSource(index);
+          auto index = static_cast<MultiFilterProxyModel*>(Ui->symbolTableTableView->model())->sourceModel()->index(it->Index, 0);
+          index      = static_cast<MultiFilterProxyModel*>(Ui->symbolTableTableView->model())->mapFromSource(index);
           Ui->symbolTableTableView->setCurrentIndex(index);
         }
       });
@@ -123,12 +119,14 @@ public:
 
   void OnSelectedSectionHeaderChanged()
   {
+    // TODO: Use event args
     const auto*  selection = Ui->sectionHeaderTableView->selectionModel();
     const auto&& indices   = selection->selectedIndexes();
     if (indices.empty()) { return; }
     Ui->statusbar->showMessage(tr("%1 rows selected").arg(selection->selectedRows().count()));
 
-    const size_t   row         = SectionModel->mapToSource(indices.first()).row();
+    // WARNING: remove cast? Add mapToSource to TableView.
+    const size_t   row         = static_cast<MultiFilterProxyModel*>(Ui->sectionHeaderTableView->model())->mapToSource(indices.first()).row();
     const QString& sectionName = SectionHeaders.at(row).Name;
 
     //    if (SectionHeaders[row].Display)
@@ -180,7 +178,7 @@ public:
     if (indices.empty()) { return; }
     Ui->statusbar->showMessage(tr("%1 rows selected").arg(selection->selectedRows().count()));
 
-    const size_t  row    = SymbolModel->mapToSource(indices.first()).row();
+    const size_t  row    = static_cast<MultiFilterProxyModel*>(Ui->symbolTableTableView->model())->mapToSource(indices.first()).row();
     const Symbol& symbol = SymbolTable.at(row);
 
     //    if (SymbolTable[row].Display)
@@ -231,11 +229,8 @@ public:
 
   std::unique_ptr<Ui::MainWindow>         Ui;
   BinUtils&                               BinUtil;
-  std::unique_ptr<MultiFilterProxyModel>  SectionModel;
-  std::unique_ptr<MultiFilterProxyModel>  SymbolModel;
   std::vector<SectionHeader>              SectionHeaders;
   std::vector<Symbol>                     SymbolTable;
-  std::unique_ptr<HexNumberDelegate>      HexDelegate;
   std::unique_ptr<DisassemblyHighlighter> Highlighter;
   bool                                    IsInit{ false };
 };
@@ -270,60 +265,16 @@ void MainWindow::showEvent(QShowEvent* e)
   QMainWindow::showEvent(e);
   if (!_impl->IsInit)
   {
-    connect(_impl->Ui->disassemblySearchLineEdit, &QLineEdit::returnPressed, [this]() {
-      QString query = _impl->Ui->disassemblySearchLineEdit->text();
-      if (!query.isEmpty())
-      {
-        const bool found = _impl->Ui->disassemblyTextBrowser->find(query);
-        if (!found)
-        {
-          _impl->Ui->disassemblyTextBrowser->moveCursor(QTextCursor::Start);
-          _impl->Ui->disassemblyTextBrowser->find(query);
-        }
-      }
-    });
-    connect(_impl->Ui->disassemblySearchLineEdit, &QLineEdit::textChanged, [this](const QString& query) {
-      if (!query.isEmpty())
-      {
-        QList<QTextEdit::ExtraSelection> extraSelections;
-
-        _impl->Ui->disassemblyTextBrowser->moveCursor(QTextCursor::Start);
-        QColor color = QColor(Qt::gray).lighter(130);
-
-        while (_impl->Ui->disassemblyTextBrowser->find(query))
-        {
-          QTextEdit::ExtraSelection extra;
-          extra.format.setBackground(color);
-          extra.cursor = _impl->Ui->disassemblyTextBrowser->textCursor();
-          extraSelections.append(extra);
-        }
-
-        _impl->Ui->disassemblyTextBrowser->setExtraSelections(extraSelections);
-      }
-    });
+    _impl->Ui->disassemblySearchLineEdit->setTextBrowser(_impl->Ui->disassemblyTextBrowser);
 
     _impl->BinUtil.ExecObjdump(
       { "-hw", _impl->BinUtil.ElfFile() },
       [this](const QString& out) {
         _impl->SectionHeaders    = SectionHeader::ParseFromObjdump(out);
         auto* sectionHeaderModel = new SectionHeaderItemModel(_impl->SectionHeaders, this);
-        _impl->SectionModel      = std::make_unique<MultiFilterProxyModel>();
-        _impl->SectionModel->setSourceModel(sectionHeaderModel);
-        _impl->Ui->sectionHeaderTableView->setModel(_impl->SectionModel.get());
-        _impl->Ui->sectionHeaderTableView->setItemDelegate(_impl->HexDelegate.get());
-        auto* header = new FilterHeaderView(_impl->Ui->sectionHeaderTableView);
-        _impl->Ui->sectionHeaderTableView->setHorizontalHeader(header);
-        header->setVisible(true);
-        _impl->Ui->sectionHeaderTableView->setSortingEnabled(true);
-        _impl->Ui->sectionHeaderTableView->sortByColumn(SectionHeaderItemModel::INDEX, Qt::AscendingOrder);
-        QObject::connect(header, &FilterHeaderView::filterTextChanged, _impl->SectionModel.get(), &MultiFilterProxyModel::setColumnFilter);
+        _impl->Ui->sectionHeaderTableView->setModel(sectionHeaderModel);
 
-        connect(
-          sectionHeaderModel,
-          &QAbstractItemModel::dataChanged,
-          [this](const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles) {
-            _impl->OnShowHeaderChanged(topLeft, bottomRight, roles);
-          });
+        //        connect(sectionHeaderModel, &QAbstractItemModel::dataChanged, _impl.get(), &MainWindowPrivate::OnShowHeaderChanged);
 
         connect(
           _impl->Ui->sectionHeaderTableView->selectionModel(),
@@ -340,23 +291,10 @@ void MainWindow::showEvent(QShowEvent* e)
       [this](const QString& out) {
         _impl->SymbolTable     = Symbol::ParseFromObjdump(out);
         auto* symbolTableModel = new SymbolItemModel(_impl->SymbolTable, this);
-        _impl->SymbolModel     = std::make_unique<MultiFilterProxyModel>();
-        _impl->SymbolModel->setSourceModel(symbolTableModel);
-        _impl->Ui->symbolTableTableView->setModel(_impl->SymbolModel.get());
-        _impl->Ui->symbolTableTableView->setItemDelegate(_impl->HexDelegate.get());
-        auto* header = new FilterHeaderView(_impl->Ui->symbolTableTableView);
-        _impl->Ui->symbolTableTableView->setHorizontalHeader(header);
-        header->setVisible(true);
-        _impl->Ui->symbolTableTableView->setSortingEnabled(true);
-        _impl->Ui->symbolTableTableView->sortByColumn(SymbolItemModel::INDEX, Qt::AscendingOrder);
-        QObject::connect(header, &FilterHeaderView::filterTextChanged, _impl->SymbolModel.get(), &MultiFilterProxyModel::setColumnFilter);
+        _impl->Ui->symbolTableTableView->setModel(symbolTableModel);
 
-        connect(
-          symbolTableModel,
-          &QAbstractItemModel::dataChanged,
-          [this](const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles) {
-            _impl->OnShowSymbolChanged(topLeft, bottomRight, roles);
-          });
+        // FIXME:
+        //        connect(symbolTableModel, &QAbstractItemModel::dataChanged, _impl.get(), &MainWindowPrivate::OnShowSymbolChanged);
 
         connect(
           _impl->Ui->symbolTableTableView->selectionModel(),

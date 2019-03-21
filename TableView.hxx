@@ -2,16 +2,25 @@
 #define TABLEVIEW_HXX
 
 #include <QTableView>
+#include <memory>
 
+class FilterHeaderView;
+class HexNumberDelegate;
+class MultiFilterProxyModel;
 class TableView : public QTableView {
 public:
   explicit TableView(QWidget* parent = nullptr);
+  ~TableView();
+  void setModel(QAbstractItemModel* model) override;
 
 protected:
   void keyPressEvent(QKeyEvent* event) override;
+  void resizeEvent(QResizeEvent* event) override;
 
 private:
-  bool _userHasResized{ false };
+  std::unique_ptr<FilterHeaderView>      _header;
+  std::unique_ptr<HexNumberDelegate>     _delegate;
+  std::unique_ptr<MultiFilterProxyModel> _model;
 };
 
 #endif  // TABLEVIEW_HXX
