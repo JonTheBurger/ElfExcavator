@@ -16,7 +16,6 @@
 #include "ui_MainWindow.h"
 
 // https://doc.qt.io/qt-5.9/classes.html
-/// TODO: Ctrl+Shift+F Find in disassembly view (derived class)
 /// TODO: Chart colors
 /// TODO: Forward/back button support (goto last symbol)
 /// TODO: View Menu (show dock widget)
