@@ -1,11 +1,10 @@
 # =========================
 # Project Settings
 # =========================
-cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5)
 project(elf-browser)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Qt
@@ -13,10 +12,10 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt5 5.9 REQUIRED COMPONENTS Core Charts Gui Widgets)
+find_package(Qt5 5.9 REQUIRED COMPONENTS Core Charts Gui Widgets Qml)
 
 # =========================
-# User Options
+# Options
 # =========================
 # Set default build type to debug
 if(NOT CMAKE_BUILD_TYPE)
@@ -32,8 +31,12 @@ if(CCACHE_FOUND)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
-add_executable(${PROJECT_NAME}
-    main.cxx
+option(${PROJECT_NAME}_BUILD_TESTING "" OFF)
+
+# =========================
+# Sources
+# =========================
+add_library(lib${PROJECT_NAME}
     BinUtils.cxx
     BinUtils.hxx
     BinUtilsDialog.cxx
@@ -54,6 +57,8 @@ add_executable(${PROJECT_NAME}
     MultiFilterProxyModel.cxx
     MultiFilterProxyModel.hxx
     MaxStore.hxx
+    Palette.cxx
+    Palette.hxx
     PieChart.cxx
     PieChart.hxx
     SectionHeader.cxx
@@ -67,15 +72,25 @@ add_executable(${PROJECT_NAME}
     TableView.cxx
     TableView.hxx
 )
-target_include_directories(${PROJECT_NAME}
-    PRIVATE
+target_include_directories(lib${PROJECT_NAME}
+    PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
 )
-target_link_libraries(${PROJECT_NAME}
-    PRIVATE
+target_link_libraries(lib${PROJECT_NAME}
+    PUBLIC
     Qt5::Core
     Qt5::Charts
     Qt5::Gui
     Qt5::Widgets
+    Qt5::Qml
 )
+
+add_executable(${PROJECT_NAME}
+    main.cxx
+)
+target_link_libraries(${PROJECT_NAME} lib${PROJECT_NAME})
+
+if (${${PROJECT_NAME}_BUILD_TESTING})
+  add_subdirectory(test)
+endif()

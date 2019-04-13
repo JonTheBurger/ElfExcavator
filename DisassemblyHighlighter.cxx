@@ -8,17 +8,17 @@
 static struct HighlighterFormat {
   HighlighterFormat()
   {
-    Number.setForeground(QColor(0xFD971F));
-    Keyword.setForeground(QColor(0x0484FF));
-    String.setForeground(QColor(0x1EAA1E));
+    Number.setForeground(QColor(0xFD971F));   // orange
+    Keyword.setForeground(QColor(0x0484FF));  // blue
+    String.setForeground(QColor(0x1EAA1E));   // green
     Type.setFontWeight(QFont::Bold);
-    Function.setForeground(QColor(0xAE81FF));
-    Comment.setForeground(QColor(0x808080));
-    Braces.setForeground(QColor(0x4EF278));
-    Instruction.setForeground(QColor(0xCC0000));
-    Dollar.setForeground(QColor(0xFFC66D));
-    Percent.setForeground(QColor(0x66D9EF));
-    Hash.setForeground(QColor(0xEE72BA));
+    Function.setForeground(QColor(0xAE81FF));     // purple
+    Comment.setForeground(QColor(0x808080));      // gray
+    Braces.setForeground(QColor(0x4EF278));       // light green
+    Instruction.setForeground(QColor(0xCC0000));  // red
+    Dollar.setForeground(QColor(0xFFC66D));       // yellow
+    Percent.setForeground(QColor(0x66D9EF));      // light blue
+    Hash.setForeground(QColor(0xEE72BA));         // pink
   }
 
   QTextCharFormat Number;

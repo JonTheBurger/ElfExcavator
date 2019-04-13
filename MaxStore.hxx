@@ -22,7 +22,7 @@ public:
   void push(const T& v)
   {
     _container.push_back(v);
-    std::push_heap(_container.begin(), _container.end(), std::greater{});
+    std::push_heap(_container.begin(), _container.end(), std::greater<void>{});
 
     if (size() > capacity())
     {
@@ -32,7 +32,7 @@ public:
 
   void pop()
   {
-    std::pop_heap(_container.begin(), _container.end(), std::greater{});
+    std::pop_heap(_container.begin(), _container.end(), std::greater<void>{});
     _container.pop_back();
   }
 

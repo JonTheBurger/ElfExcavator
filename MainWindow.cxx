@@ -21,7 +21,6 @@
 /// TODO: View Menu (show dock widget)
 /// TODO: Plug the leaks
 /// TODO: Evaluate memory/perf of DisassemblyHighlighter
-/// BIG TODO: Filter by hex number
 /// BIG TODO: Options Menu (25 count, chart theme, chart animations, regex options)
 /// BIG TODO: Installer
 /// BIG TODO: All others chart item
