@@ -17,6 +17,7 @@ public:
   static QColor               PINK;
   static QColor               GREEN_LIGHT;
   static QColor               BLUE_LIGHT;
+  static QColor               BROWN;
   static std::vector<QColor*> COLORS;
 };
 

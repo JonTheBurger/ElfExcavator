@@ -16,24 +16,25 @@
 #include "ui_MainWindow.h"
 
 // https://doc.qt.io/qt-5.9/classes.html
-/// TODO: Chart colors
 /// TODO: Forward/back button support (goto last symbol)
-/// TODO: View Menu (show dock widget)
 /// TODO: Plug the leaks
-/// TODO: Evaluate memory/perf of DisassemblyHighlighter
-/// BIG TODO: Options Menu (25 count, chart theme, chart animations, regex options)
-/// BIG TODO: Installer
-/// BIG TODO: All others chart item
-/// BIG TODO: Uncheck all
-/// BIG TODO: Background thread
-/// BIG TODO: Split assembly and source?
-/// BIG TODO: Click on function to navigate
+/// TODO: Refactory into PieChart
+/// TODO: Options Menu (25 count, chart theme, chart animations, regex options)
+/// TODO: Uncheck all
+/// TODO: Installer
+/// TODO: Help, manual, video, etc.https://www.walletfox.com/course/qhelpengineexample.php
+/// TODO: Translations
+/// TODO: Clean up cmake structure
+/// ? Split assembly and source
+/// ? Click on function to navigate
+/// ? Call graph using node editor
 
 MainWindow::MainWindow(BinUtils* binUtils, QWidget* parent)
     : QMainWindow{ parent }
     , _ui{ std::make_unique<Ui::MainWindow>() }
     , _binUtils{ *binUtils }
-    , _highlighter{ std::make_unique<DisassemblyHighlighter>() }
+    , _highlighter{ std::make_unique<DisassemblyHighlighter>(nullptr) }
+    , _colorIter{ Palette::COLORS.cbegin(), Palette::COLORS.cend() }
 {
   Q_ASSERT(binUtils);
   _ui->setupUi(this);
@@ -90,7 +91,7 @@ void MainWindow::SetupChart()
   auto* chart = new QChart();  /// Owned by chartView when setChart is called
   chart->legend()->hide();
   chart->setAnimationOptions(QChart::SeriesAnimations);
-  chart->setTheme(QChart::ChartTheme::ChartThemeDark);
+  chart->setBackgroundBrush(palette().color(QPalette::Normal, QPalette::Window));
   _ui->chartView->setChart(chart);
   _ui->chartView->setRenderHint(QPainter::Antialiasing);
 }
@@ -107,10 +108,12 @@ void MainWindow::OnTabChanged(const MainWindow::Tab tab)
       if (section.Display)
       {
         QPieSlice* const slice = series->append(section.Name, section.Size);
+        slice->setColor(**_colorIter++);
       }
     }
 
     _ui->chartView->chart()->setTitle(tr("Section Headers"));
+    _ui->chartView->chart()->setTitleBrush(palette().color(QPalette::Normal, QPalette::Text));
     _highlighter->Enabled = false;
     connect(series, &QPieSeries::clicked, [this](QPieSlice* slice) {
       auto it = std::find_if(_sectionHeaders.begin(), _sectionHeaders.end(), [&slice](auto&& header) { return header.Display && (header.Name == slice->label()); });
@@ -129,10 +132,12 @@ void MainWindow::OnTabChanged(const MainWindow::Tab tab)
       if (symbol.Display)
       {
         QPieSlice* const slice = series->append(symbol.Name, symbol.Size);
+        slice->setColor(**_colorIter++);
       }
     }
 
     _ui->chartView->chart()->setTitle(tr("Symbols"));
+    _ui->chartView->chart()->setTitleBrush(palette().color(QPalette::Normal, QPalette::Text));
     _highlighter->Enabled = true;
     connect(series, &QPieSeries::clicked, [this](QPieSlice* slice) {
       auto it = std::find_if(_symbolTable.begin(), _symbolTable.end(), [&slice](auto&& header) { return header.Display && (header.Name == slice->label()); });
@@ -147,8 +152,9 @@ void MainWindow::OnTabChanged(const MainWindow::Tab tab)
 
   _ui->chartView->chart()->removeAllSeries();
   _ui->chartView->chart()->addSeries(series);  // WARNING: Memory leak?
-  connect(series, &QPieSeries::hovered, [](QPieSlice* slice, bool state) {
+  connect(series, &QPieSeries::hovered, [this](QPieSlice* slice, bool state) {
     slice->setLabelVisible(state);
+    slice->setLabelBrush(palette().color(QPalette::Normal, QPalette::Text));
   });
 }
 
@@ -193,6 +199,7 @@ void MainWindow::OnShowHeaderChanged(const QModelIndex& topLeft, const QModelInd
     {
       auto* slice = series->append(_sectionHeaders[i].Name, _sectionHeaders[i].Size);
       slice->setLabelVisible();
+      slice->setColor(**_colorIter++);
     }
     else  // remove
     {
@@ -249,6 +256,7 @@ void MainWindow::OnShowSymbolChanged(const QModelIndex& topLeft, const QModelInd
     {
       auto* slice = series->append(_symbolTable[i].Name, _symbolTable[i].Size);
       slice->setLabelVisible();
+      slice->setColor(**_colorIter++);
     }
     else  // remove
     {

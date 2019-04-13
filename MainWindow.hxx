@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 
+#include "CircularIterator.hxx"
+#include "Palette.hxx"
 #include "SectionHeader.hxx"
 #include "Symbol.hxx"
 
@@ -41,11 +43,12 @@ private:
   void OnSelectedSymbolChanged(const QItemSelection& selected, const QItemSelection& deselected);
   void OnShowSymbolChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles);
 
-  std::unique_ptr<Ui::MainWindow>         _ui;
-  BinUtils&                               _binUtils;
-  std::vector<SectionHeader>              _sectionHeaders;
-  std::vector<Symbol>                     _symbolTable;
-  std::unique_ptr<DisassemblyHighlighter> _highlighter;
+  std::unique_ptr<Ui::MainWindow>                       _ui;
+  BinUtils&                                             _binUtils;
+  std::vector<SectionHeader>                            _sectionHeaders;
+  std::vector<Symbol>                                   _symbolTable;
+  std::unique_ptr<DisassemblyHighlighter>               _highlighter;
+  circular_iterator<decltype(Palette::COLORS.cbegin())> _colorIter;
 };
 
 #endif  // MAINWINDOW_HXX
