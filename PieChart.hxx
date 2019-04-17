@@ -9,6 +9,9 @@ public:
   explicit PieChart(QWidget* parent = nullptr);
   explicit PieChart(QChart* chart, QWidget* parent = nullptr);
 
+  void insert(const QString& label, qreal value);
+  void erase(const QString& label);
+
   void        zoomIn();
   void        zoomOut();
   inline void zoomReset() { resetMatrix(); }

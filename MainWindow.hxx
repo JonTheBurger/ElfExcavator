@@ -36,7 +36,6 @@ protected:
   void changeEvent(QEvent* e) final;
 
 private:
-  void SetupChart();
   void OnTabChanged(const MainWindow::Tab tab);
   void OnSelectedSectionHeaderChanged(const QItemSelection& selected, const QItemSelection& deselected);
   void OnShowHeaderChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles);

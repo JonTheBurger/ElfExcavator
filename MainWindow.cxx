@@ -16,15 +16,16 @@
 #include "ui_MainWindow.h"
 
 // https://doc.qt.io/qt-5.9/classes.html
+/// TODO: Refactor into PieChart
+/// TODO: setExploded selection
 /// TODO: Forward/back button support (goto last symbol)
-/// TODO: Plug the leaks
-/// TODO: Refactory into PieChart
-/// TODO: Options Menu (25 count, chart theme, chart animations, regex options)
 /// TODO: Uncheck all
+/// TODO: Options Menu (25 count, chart theme, chart animations, regex options)
+/// TODO: Plug the leaks
 /// TODO: Installer
 /// TODO: Help, manual, video, etc.https://www.walletfox.com/course/qhelpengineexample.php
-/// TODO: Translations
 /// TODO: Clean up cmake structure
+/// TODO: Translations
 /// ? Split assembly and source
 /// ? Click on function to navigate
 /// ? Call graph using node editor
@@ -43,7 +44,6 @@ MainWindow::MainWindow(BinUtils* binUtils, QWidget* parent)
   resize(settings.value("MainWindow::size", size()).toSize());
   move(settings.value("MainWindow::pos", pos()).toPoint());
 
-  SetupChart();
   _highlighter->setDocument(_ui->disassemblyTextBrowser->document());
 
   connect(_ui->tabWidget, &QTabWidget::currentChanged, [this](int tab) {
@@ -84,16 +84,6 @@ MainWindow::~MainWindow()
   QSettings settings;
   settings.setValue("MainWindow::size", size());
   settings.setValue("MainWindow::pos", pos());
-}
-
-void MainWindow::SetupChart()
-{
-  auto* chart = new QChart();  /// Owned by chartView when setChart is called
-  chart->legend()->hide();
-  chart->setAnimationOptions(QChart::SeriesAnimations);
-  chart->setBackgroundBrush(palette().color(QPalette::Normal, QPalette::Window));
-  _ui->chartView->setChart(chart);
-  _ui->chartView->setRenderHint(QPainter::Antialiasing);
 }
 
 void MainWindow::OnTabChanged(const MainWindow::Tab tab)
@@ -191,23 +181,15 @@ void MainWindow::OnSelectedSectionHeaderChanged(const QItemSelection& selected, 
 void MainWindow::OnShowHeaderChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles)
 {
   (void)roles;
-  auto* const series = static_cast<QPieSeries*>(_ui->chartView->chart()->series().first());
-  auto&&      slices = series->slices();
   for (int i = bottomRight.row(); i >= topLeft.row(); --i)
   {
-    if (_sectionHeaders.at(i).Display)  // add
+    if (_sectionHeaders.at(i).Display)
     {
-      auto* slice = series->append(_sectionHeaders[i].Name, _sectionHeaders[i].Size);
-      slice->setLabelVisible();
-      slice->setColor(**_colorIter++);
+      _ui->chartView->insert(_symbolTable[i].Name, _symbolTable[i].Size);
     }
-    else  // remove
+    else
     {
-      auto it = std::find_if(slices.begin(), slices.end(), [this, i](QPieSlice* s) { return s->label() == _sectionHeaders[i].Name; });
-      if (it != slices.end())
-      {
-        series->remove(*it);
-      }
+      _ui->chartView->erase(_symbolTable[i].Name);
     }
   }
   _ui->chartView->update();
@@ -248,23 +230,16 @@ void MainWindow::OnSelectedSymbolChanged(const QItemSelection& selected, const Q
 
 void MainWindow::OnShowSymbolChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles)
 {
-  auto* const series = static_cast<QPieSeries*>(_ui->chartView->chart()->series().first());
-  auto&&      slices = series->slices();
+  (void)roles;
   for (int i = bottomRight.row(); i >= topLeft.row(); --i)
   {
-    if (_symbolTable.at(i).Display)  // add
+    if (_symbolTable.at(i).Display)
     {
-      auto* slice = series->append(_symbolTable[i].Name, _symbolTable[i].Size);
-      slice->setLabelVisible();
-      slice->setColor(**_colorIter++);
+      _ui->chartView->insert(_symbolTable[i].Name, _symbolTable[i].Size);
     }
-    else  // remove
+    else
     {
-      auto it = std::find_if(slices.begin(), slices.end(), [this, i](QPieSlice* s) { return s->label() == _symbolTable[i].Name; });
-      if (it != slices.end())
-      {
-        series->remove(*it);
-      }
+      _ui->chartView->erase(_symbolTable[i].Name);
     }
   }
   _ui->chartView->update();

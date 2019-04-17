@@ -2,7 +2,11 @@
 # Project Settings
 # =========================
 cmake_minimum_required(VERSION 3.5)
-project(elf-browser)
+project(qobjdump-gui
+  VERSION 0.1.2
+  DESCRIPTION "Graphical frontend for objdump"
+  LANGUAGES CXX
+)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -94,3 +98,14 @@ target_link_libraries(${PROJECT_NAME} lib${PROJECT_NAME})
 if (${${PROJECT_NAME}_BUILD_TESTING})
   add_subdirectory(test)
 endif()
+
+# =========================
+# Install
+# =========================
+include(InstallRequiredSystemLibraries)
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT Libraries)
+set(CPACK_PACKAGE_CONTACT "Jon Povirk")
+set(CPACK_DEBIAN_PACKAGE_SECTION "devel")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a, libqt5charts5, libqt5gui5, libqt5widgets5, libqt5qml5")
+include(CPack)
