@@ -1,3 +1,17 @@
+# Build Directories
 build/
+Build/
+out/
+
+# IDE/Editor files
+*.swp
+*.tmp
 *.user
+.idea/
+.vs/
+CMakeLists.txt.user
+CMakeUserPresets.json
+
+# Python
+.venv/
 

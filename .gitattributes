@@ -1,0 +1,25 @@
+# Force LF
+* text=auto eol=lf
+
+# Binary Files
+*.7z binary
+*.fla binary
+*.flv binary
+*.gif binary
+*.gz binary
+*.ico binary
+*.jpeg binary
+*.jpg binary
+*.mov binary
+*.mp3 binary
+*.mp4 binary
+*.png binary
+*.swf binary
+*.ttf binary
+*.zip binary
+
+# Windows
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+

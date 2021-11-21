@@ -1,0 +1,22 @@
+if (${PROJECT_NAME}_USE_BUNDLED_LLVM)
+  add_library(LLVMDemangle
+    ${CMAKE_CURRENT_LIST_DIR}/include/llvm/Demangle/DemangleConfig.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/llvm/Demangle/Demangle.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/llvm/Demangle/ItaniumDemangle.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/llvm/Demangle/MicrosoftDemangle.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/llvm/Demangle/MicrosoftDemangleNodes.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/llvm/Demangle/StringView.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/llvm/Demangle/Utility.h
+    ${CMAKE_CURRENT_LIST_DIR}/lib/Demangle/Demangle.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/lib/Demangle/ItaniumDemangle.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/lib/Demangle/MicrosoftDemangle.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/lib/Demangle/MicrosoftDemangleNodes.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/lib/Demangle/RustDemangle.cpp
+  )
+  target_include_directories(LLVMDemangle
+    PUBLIC
+      ${CMAKE_CURRENT_LIST_DIR}/include
+  )
+else()
+  find_package(LLVM CONFIG REQUIRED)
+endif()
