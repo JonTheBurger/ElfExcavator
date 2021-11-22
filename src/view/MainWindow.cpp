@@ -30,6 +30,7 @@ struct MainWindow::Impl {
     ui.setupUi(&self);
     // Dock constructor must come AFTER setupUi()
     dock = new ads::CDockManager(&self);
+    dock->setConfigFlag(ads::CDockManager::FloatingContainerForceNativeTitleBar, true);
   }
 
   /// Takes ownership of widget
@@ -41,50 +42,59 @@ struct MainWindow::Impl {
     ui.menu_view->addAction(dock_widget->toggleViewAction());
   }
 
-  void initLogOutputDock(ads::DockWidgetArea location = ads::TopDockWidgetArea)
+  /// Takes ownership of widget
+  void addDockTab(const QString& name, QWidget* widget, ads::DockWidgetArea location = ads::TopDockWidgetArea)
+  {
+    auto* dock_widget = new ads::CDockWidget(name);
+    dock_widget->setWidget(widget);
+    dock->addDockWidgetTab(location, dock_widget);
+    ui.menu_view->addAction(dock_widget->toggleViewAction());
+  }
+
+  void initSettingsDock()
+  {
+    auto* widget = new SettingsForm(presenter.settingsPresenter(), &self);
+    addDock("Settings", widget, ads::TopDockWidgetArea);
+  }
+
+  void initLogOutputDock()
   {
     auto* widget          = new QPlainTextEdit();
     auto  widget_log_sink = std::make_shared<spdlog::sinks::qt_sink_mt>(widget, "appendPlainText");
     spdlog::get("")->sinks().push_back(std::move(widget_log_sink));
-    addDock("Log Output", widget, location);
+    addDock("Log Output", widget, ads::BottomDockWidgetArea);
   }
 
-  void initSettingsDock(ads::DockWidgetArea location = ads::TopDockWidgetArea)
-  {
-    auto* widget = new SettingsForm(presenter.settingsPresenter(), &self);
-    addDock("Settings", widget, location);
-  }
-
-  void initSectionHeaderDock(ads::DockWidgetArea location = ads::TopDockWidgetArea)
+  void initSectionHeaderDock()
   {
     auto* widget = new MultiFilterTableView(&self);
     widget->setModel(&presenter.sectionHeaderItemModel());
-    addDock("Section Headers", widget, location);
+    addDockTab("Section Headers", widget, ads::BottomDockWidgetArea);
   }
 
-  void initSymbolTableDock(ads::DockWidgetArea location = ads::TopDockWidgetArea)
+  void initSymbolTableDock()
   {
     auto* widget = new MultiFilterTableView(&self);
     widget->setModel(&presenter.symbolTableItemModel());
-    addDock("Symbol Table", widget, location);
+    addDockTab("Symbol Table", widget, ads::BottomDockWidgetArea);
   }
 
-  void initSectionHeaderChartDock(ads::DockWidgetArea location = ads::TopDockWidgetArea)
+  void initSectionHeaderChartDock()
   {
     auto* widget = new PieChartForm(presenter.selectedSectionHeaderItemModel(),
                                     SectionHeaderItemModel::NAME,
                                     SectionHeaderItemModel::SIZE,
                                     &self);
-    addDock("Section Headers", widget, location);
+    addDockTab("Section Headers", widget, ads::TopDockWidgetArea);
   }
 
-  void initSymbolTableChartDock(ads::DockWidgetArea location = ads::TopDockWidgetArea)
+  void initSymbolTableChartDock()
   {
     auto* widget = new PieChartForm(presenter.selectedSymbolTableItemModel(),
                                     SymbolTableItemModel::NAME,
                                     SymbolTableItemModel::SIZE,
                                     &self);
-    addDock("Symbol Table", widget, location);
+    addDockTab("Symbol Table", widget, ads::TopDockWidgetArea);
   }
 };
 
@@ -92,8 +102,8 @@ MainWindow::MainWindow(MainPresenter& present, QWidget* parent)
     : QMainWindow(parent)
     , _self{ std::make_unique<Impl>(*this, present) }
 {
-  //  _self->initSettingsDock();
-  //  _self->initLogOutputDock();
+  _self->initSettingsDock();
+  _self->initLogOutputDock();
   _self->initSectionHeaderDock();
   _self->initSymbolTableDock();
   _self->initSectionHeaderChartDock();

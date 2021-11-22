@@ -22,14 +22,14 @@ public:
 
   enum Columns {
     INDEX,
+    DEMANGLED_NAME,
     NAME,
-    MANGLED_NAME,
     VALUE,
     SIZE,
     BIND,
     TYPE,
-    SECTION_INDEX,
-    OTHER,
+    SECTION,
+    VISIBILITY,
 
     ARRAY_SIZE_,
   };

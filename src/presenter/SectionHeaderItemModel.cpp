@@ -1,6 +1,7 @@
 #include "SectionHeaderItemModel.hpp"
 
 #include <QAbstractItemModel>
+#include <QMetaEnum>
 #include <unordered_map>
 
 #include "model/ElfFile.hpp"
@@ -10,10 +11,12 @@ struct SectionHeaderItemModel::Impl {
 
   SectionHeaderItemModel& self;
   ElfFile&                elf_file;
+  QMetaEnum               flags_enum;
 
   explicit Impl(SectionHeaderItemModel& that, ElfFile& elf_file_) noexcept
       : self{ that }
       , elf_file{ elf_file_ }
+      , flags_enum{ QMetaEnum::fromType<SectionHeaderItemModel::Flag>() }
   {
   }
 };
@@ -52,6 +55,8 @@ QVariant SectionHeaderItemModel::headerData(int section, Qt::Orientation orienta
         return tr("Load Address");
       case ALIGNMENT:
         return tr("Alignment");
+      case TYPE:
+        return tr("Type");
       case FLAGS:
         return tr("Flags");
       default:
@@ -96,8 +101,48 @@ QVariant SectionHeaderItemModel::data(const QModelIndex& index, int role) const
         return static_cast<quint64>(_self->elf_file.sections()[idx].address);
       case ALIGNMENT:
         return static_cast<quint16>(_self->elf_file.sections()[idx].addr_align);
+      case TYPE:
+        switch (_self->elf_file.sections()[idx].type)
+        {
+          case Section::Type_NULL:
+            return tr("NULL");
+          case Section::Type_PROGBITS:
+            return tr("PROGBITS");
+          case Section::Type_SYMTAB:
+            return tr("SYMTAB");
+          case Section::Type_STRTAB:
+            return tr("STRTAB");
+          case Section::Type_RELA:
+            return tr("RELA");
+          case Section::Type_HASH:
+            return tr("HASH");
+          case Section::Type_DYNAMIC:
+            return tr("DYNAMIC");
+          case Section::Type_NOTE:
+            return tr("NOTE");
+          case Section::Type_NOBITS:
+            return tr("NOBITS");
+          case Section::Type_REL:
+            return tr("REL");
+          case Section::Type_SHLIB:
+            return tr("SHLIB");
+          case Section::Type_DYNSYM:
+            return tr("DYNSYM");
+          case Section::Type_INIT_ARRAY:
+            return tr("INIT_ARRAY");
+          case Section::Type_FINI_ARRAY:
+            return tr("FINI_ARRAY");
+          case Section::Type_PREINIT_ARRAY:
+            return tr("PREINIT_ARRAY");
+          case Section::Type_GROUP:
+            return tr("GROUP");
+          case Section::Type_SYMTAB_SHNDX:
+            return tr("SYMTAB_SHNDX");
+          default:
+            return QString();
+        }
       case FLAGS:
-        return static_cast<quint64>(_self->elf_file.sections()[idx].flags);
+        return _self->flags_enum.valueToKeys(static_cast<uint8_t>(_self->elf_file.sections()[idx].flags));
       default:
         break;
     }

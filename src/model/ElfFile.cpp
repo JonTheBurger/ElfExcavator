@@ -1,6 +1,7 @@
 #include "ElfFile.hpp"
 
 #include <elfio/elfio.hpp>
+#include <fstream>
 #include <llvm/Demangle/Demangle.h>
 #include <spdlog/spdlog.h>
 #include <vector>
@@ -26,7 +27,7 @@ struct ElfFile::Impl {
         symbol.bind,
         symbol.type,
         symbol.section_index,
-        symbol.other);
+        symbol.visibility);
       symbol.name = llvm::demangle(symbol.mangled_name);
 
       if (symbol.name.empty())
@@ -75,6 +76,31 @@ ElfFile::ElfFile()
 }
 
 ElfFile::~ElfFile() = default;
+
+bool ElfFile::isElfFile(const char* path)
+{
+  static constexpr char MAGIC[] = { 0x7F, 0x45, 0x4C, 0x46, 0x02, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+  char                  buffer[sizeof(MAGIC)]{};
+  std::ifstream         ifs(path, std::ios::binary);
+  bool                  ok = false;
+
+  if (ifs)
+  {
+    ifs.read(buffer, sizeof(buffer));
+  }
+
+  if (ifs.good())
+  {
+    ok = std::memcmp(MAGIC, buffer, sizeof(MAGIC)) == 0;
+  }
+
+  return ok;
+}
+
+bool ElfFile::load(const char* file)
+{
+  return load(std::string{ file });
+}
 
 bool ElfFile::load(const std::string& file)
 {
