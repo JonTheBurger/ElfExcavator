@@ -91,7 +91,7 @@ struct MainWindow::Impl {
   void initSymbolTableChartDock()
   {
     auto* widget = new PieChartForm(presenter.selectedSymbolTableItemModel(),
-                                    SymbolTableItemModel::NAME,
+                                    SymbolTableItemModel::DEMANGLED_NAME,
                                     SymbolTableItemModel::SIZE,
                                     &self);
     addDockTab("Symbol Table", widget, ads::TopDockWidgetArea);

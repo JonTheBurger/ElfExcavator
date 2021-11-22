@@ -2,6 +2,9 @@
 
 #include <KCheckableProxyModel>
 #include <KSelectionProxyModel>
+#include <algorithm>
+#include <spdlog/spdlog.h>
+#include <vector>
 
 #include "SectionHeaderItemModel.hpp"
 #include "SettingsPresenter.hpp"
@@ -54,8 +57,66 @@ struct MainPresenter::Impl {
       {
         section_header_item_model.onElfFileLoaded();
         symbol_table_item_model.onElfFileLoaded();
+        checkBoxesOfNLargest(section_header_check_proxy, SectionHeaderItemModel::SIZE, 10, filterNonAllocSections);
+        checkBoxesOfNLargest(symbol_table_check_proxy, SymbolTableItemModel::SIZE, 10);
       }
     });
+  }
+
+  using FilterFunction = bool (&)(QAbstractItemModel&, int);
+
+  static bool filterNonAllocSections(QAbstractItemModel& model, int row)
+  {
+    return !model.data(model.index(row, SectionHeaderItemModel::FLAGS)).toString().contains("ALLOC");
+  }
+
+  static bool filterNone(QAbstractItemModel&, int)
+  {
+    return false;
+  }
+
+  static void checkBoxesOfNLargest(
+    QAbstractItemModel& model,
+    int                 col,
+    size_t              n_largest,
+    FilterFunction      filter = filterNone)
+  {
+    const auto       rows = model.rowCount();
+    std::vector<int> largest_rows;
+
+    const auto cmp = [&model, col](int lhs_row, int rhs_row) { return modelRowLarger(model, col, lhs_row, rhs_row); };
+    for (auto row = 0; row < rows; ++row)
+    {
+      if (filter(model, row))
+      {
+        continue;
+      }
+
+      largest_rows.push_back(row);
+      std::push_heap(largest_rows.begin(), largest_rows.end(), cmp);
+
+      if (largest_rows.size() > n_largest)
+      {
+        std::pop_heap(largest_rows.begin(), largest_rows.end(), cmp);
+        largest_rows.pop_back();
+      }
+    }
+
+    for (auto row : largest_rows)
+    {
+      model.setData(
+        model.index(row, SymbolTableItemModel::INDEX),
+        Qt::CheckState::Checked,
+        Qt::CheckStateRole);
+    }
+  }
+
+  template <typename T = qulonglong>
+  static bool modelRowLarger(QAbstractItemModel& model, int col, int left_row, int right_row)
+  {
+    auto left_idx  = model.index(left_row, col);
+    auto right_idx = model.index(right_row, col);
+    return model.data(left_idx).value<T>() > model.data(right_idx).value<T>();
   }
 };
 

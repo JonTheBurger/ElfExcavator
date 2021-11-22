@@ -35,6 +35,10 @@ public:
     ARRAY_SIZE_,
   };
 
+  enum Role {
+    Raw = Qt::UserRole,
+  };
+
   enum Flag {
     WRITE            = Section::Flags_WRITE,
     ALLOC            = Section::Flags_ALLOC,

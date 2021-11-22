@@ -36,7 +36,6 @@ int main(int argc, char* argv[])
 
   // Models
   ElfFile elf_file;
-  elf_file.load(elf_file_path.toStdString());
 
   // Presenters
   SectionHeaderItemModel section_header_item_model(elf_file);
@@ -49,6 +48,12 @@ int main(int argc, char* argv[])
 
   // Views
   MainWindow main_window(main_presenter);
+
+  // Finalize
+  if (!elf_file_path.isEmpty())
+  {
+    settings_presenter.setElfFile(elf_file_path);
+  }
   main_window.show();
 
   return QApplication::exec();
