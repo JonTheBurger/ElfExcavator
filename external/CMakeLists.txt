@@ -19,6 +19,8 @@ add_subdirectory(kitemmodels)
 
 add_subdirectory(llvm)
 
+add_subdirectory(QHexView)
+
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(Qt-Advanced-Docking-System)
 

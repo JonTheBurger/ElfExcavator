@@ -5,6 +5,7 @@
 #include <spdlog/sinks/qt_sinks.h>
 #include <spdlog/spdlog.h>
 
+#include "HexView.hpp"
 #include "MultiFilterTableView.hpp"
 #include "PieChartForm.hpp"
 #include "SettingsForm.hpp"
@@ -16,10 +17,12 @@
 struct MainWindow::Impl {
   Q_DISABLE_COPY(Impl)
 
-  MainWindow&        self;
-  Ui::MainWindow     ui;
-  MainPresenter&     presenter;
-  ads::CDockManager* dock;
+  MainWindow&          self;
+  Ui::MainWindow       ui;
+  MainPresenter&       presenter;
+  ads::CDockManager*   dock;
+  QItemSelectionModel* symsel;
+  QItemSelectionModel* secsel;
 
   explicit Impl(MainWindow& that, MainPresenter& present) noexcept
       : self{ that }
@@ -69,6 +72,7 @@ struct MainWindow::Impl {
   {
     auto* widget = new MultiFilterTableView(&self);
     widget->setModel(&presenter.sectionHeaderItemModel());
+    secsel = widget->selectionModel();
     addDockTab("Section Headers", widget, ads::BottomDockWidgetArea);
   }
 
@@ -76,6 +80,7 @@ struct MainWindow::Impl {
   {
     auto* widget = new MultiFilterTableView(&self);
     widget->setModel(&presenter.symbolTableItemModel());
+    symsel = widget->selectionModel();
     addDockTab("Symbol Table", widget, ads::BottomDockWidgetArea);
   }
 
@@ -94,7 +99,28 @@ struct MainWindow::Impl {
                                     SymbolTableItemModel::DEMANGLED_NAME,
                                     SymbolTableItemModel::SIZE,
                                     &self);
+    symsel->connect(symsel, &QItemSelectionModel::selectionChanged, [this, widget](const QItemSelection& selected, const QItemSelection& deselected) {
+      if (!selected.indexes().empty())
+      {
+        auto idx = selected.indexes()[0].row();
+      }
+      else
+      {
+      }
+    });
     addDockTab("Symbol Table", widget, ads::TopDockWidgetArea);
+  }
+
+  void initSectionHeaderHexDock()
+  {
+    auto* widget = new HexView(&self);
+    addDockTab("Section Contents", widget, ads::TopDockWidgetArea);
+  }
+
+  void initSymbolTableHexDock()
+  {
+    auto* widget = new HexView(&self);
+    addDockTab("Disassembly", widget, ads::TopDockWidgetArea);
   }
 };
 
@@ -107,7 +133,9 @@ MainWindow::MainWindow(MainPresenter& present, QWidget* parent)
   _self->initSectionHeaderDock();
   _self->initSymbolTableDock();
   _self->initSectionHeaderChartDock();
+  _self->initSectionHeaderHexDock();
   _self->initSymbolTableChartDock();
+  _self->initSymbolTableHexDock();
 }
 
 MainWindow::~MainWindow() = default;

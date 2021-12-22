@@ -22,3 +22,7 @@
 	path = external/spdlog
 	url = https://github.com/gabime/spdlog.git
 	shallow = true
+[submodule "external/QHexView"]
+	path = external/QHexView
+	url = https://github.com/Dax89/QHexView.git
+	shallow = true

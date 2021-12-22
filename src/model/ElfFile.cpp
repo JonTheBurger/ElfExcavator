@@ -7,6 +7,7 @@
 #include <vector>
 
 struct ElfFile::Impl {
+  ELFIO::elfio         elf_file;
   std::vector<Section> sections;
   std::vector<Symbol>  symbols;
 
@@ -30,12 +31,12 @@ struct ElfFile::Impl {
         symbol.visibility);
       symbol.name = llvm::demangle(symbol.mangled_name);
 
-      if (symbol.name.empty())
-      {
-        spdlog::info("Dropping unnamed symbol");
-        symbols.pop_back();
-      }
-      else if (symbol_ok)
+      //      if (symbol.name.empty())
+      //      {
+      //        spdlog::info("Dropping unnamed symbol");
+      //        symbols.pop_back();
+      //      }
+      if (symbol_ok)
       {
         spdlog::info("Loaded Symbol: {} {} {:x} {:x}",
                      symbol.index,
@@ -105,19 +106,18 @@ bool ElfFile::load(const char* file)
 bool ElfFile::load(const std::string& file)
 {
   spdlog::info("[start] Loading Sections");
-  ELFIO::elfio elf_file;
-  bool         ok = elf_file.load(file);
+  bool ok = _self->elf_file.load(file);
   if (!ok) { spdlog::error("[end] Loading Sections"); }
   spdlog::info("[end] Loading Sections");
 
-  _self->sections.reserve(elf_file.sections.size());
-  for (auto* section_header : elf_file.sections)
+  _self->sections.reserve(_self->elf_file.sections.size());
+  for (auto* section_header : _self->elf_file.sections)
   {
     _self->sections.push_back(sectionFrom(section_header));
     spdlog::info("Opened Section: {}", _self->sections.back());
 
     if ((section_header->get_type() != SHT_SYMTAB)) { continue; }
-    const ELFIO::symbol_section_accessor symbol_reader(elf_file, section_header);
+    const ELFIO::symbol_section_accessor symbol_reader(_self->elf_file, section_header);
 
     spdlog::info("[start] Loading Symbols");
     _self->loadSymbolsFrom(symbol_reader);
@@ -135,4 +135,31 @@ const std::vector<Section>& ElfFile::sections() const noexcept
 const std::vector<Symbol>& ElfFile::symbols() const noexcept
 {
   return _self->symbols;
+}
+
+std::string_view ElfFile::contentsOf(const Section& section) const
+{
+  auto idx = section.index;
+  if (idx >= _self->elf_file.sections.size()) { return {}; }
+
+  const auto* section_info = _self->elf_file.sections[idx];
+
+  // If loading failed, we may need to seek for the exact index;
+  if (section_info->get_index() != idx)
+  {
+    if (section_info->get_index() < idx)
+    {
+      // TODO: rfind
+    }
+  }
+
+  return {
+    _self->elf_file.sections[section.index]->get_data(),
+    _self->elf_file.sections[section.index]->get_size()
+  };
+}
+
+std::string ElfFile::disassemble(const Symbol& symbol) const
+{
+  return {};
 }

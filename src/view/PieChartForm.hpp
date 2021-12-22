@@ -5,7 +5,7 @@
 
 class QAbstractItemModel;
 
-class PieChartForm : public QChartView {
+class PieChartForm final : public QChartView {
   Q_OBJECT
   Q_DISABLE_COPY(PieChartForm)
 

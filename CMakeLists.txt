@@ -85,6 +85,8 @@ add_library(ElfExcavator.Core
   src/presenter/SymbolTableItemModel.hpp
   src/view/HexNumberDelegate.cpp
   src/view/HexNumberDelegate.hpp
+  src/view/HexView.cpp
+  src/view/HexView.hpp
   src/view/MainWindow.cpp
   src/view/MainWindow.hpp
   src/view/MultiFilterHeaderView.cpp
@@ -110,6 +112,7 @@ target_link_libraries(ElfExcavator.Core
     Qt5::Charts
     Qt5::Gui
     Qt5::Widgets
+    qhexview-lib
 )
 if (CMAKE_C_COMPILER_ID STREQUAL MSVC)
   target_compile_options(ElfExcavator.Core

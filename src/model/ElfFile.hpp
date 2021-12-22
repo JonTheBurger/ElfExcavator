@@ -3,6 +3,7 @@
 #include <memory>
 #include <spdlog/fmt/fmt.h>
 #include <string>
+#include <string_view>
 #include <vector>
 
 struct Section {
@@ -144,6 +145,8 @@ public:
   auto load(const std::string& file) -> bool;
   auto sections() const noexcept -> const std::vector<Section>&;
   auto symbols() const noexcept -> const std::vector<Symbol>&;
+  auto contentsOf(const Section& section) const -> std::string_view;
+  auto disassemble(const Symbol& symbol) const -> std::string;
 
 private:
   struct Impl;
