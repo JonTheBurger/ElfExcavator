@@ -12,7 +12,8 @@ class SymbolTableItemModel final : public QAbstractTableModel {
 public:
   explicit SymbolTableItemModel(ElfFile& elf_file, QObject* parent = nullptr);
   ~SymbolTableItemModel() override;
-  void onElfFileLoaded();
+  void        onElfFileLoaded();
+  QModelIndex indexOfSymbol(QStringView demangled_name);
 
   // Overrides
   QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;

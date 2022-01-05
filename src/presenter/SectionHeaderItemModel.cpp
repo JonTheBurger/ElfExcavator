@@ -35,6 +35,24 @@ void SectionHeaderItemModel::onElfFileLoaded()
   endResetModel();
 }
 
+QModelIndex SectionHeaderItemModel::indexOfSection(QStringView name)
+{
+  const auto& sections     = _self->elf_file.sections();
+  std::string section_name = name.toString().toStdString();
+
+  auto it = std::find_if(sections.begin(), sections.end(), [&section_name](const Section& section) {
+    return section.name == section_name;
+  });
+
+  if (it == sections.end())
+  {
+    return {};
+  }
+
+  auto row = std::distance(sections.begin(), it);
+  return index(row, 0);
+}
+
 QVariant SectionHeaderItemModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
   if (orientation == Qt::Orientation::Vertical) { return {}; }
@@ -83,9 +101,9 @@ QVariant SectionHeaderItemModel::data(const QModelIndex& index, int role) const
 {
   if (!index.isValid() || (index.row() >= _self->elf_file.sections().size())) { return {}; }
 
+  const auto idx = static_cast<unsigned>(index.row());
   if (role == Qt::DisplayRole)
   {
-    const auto idx = static_cast<unsigned>(index.row());
     switch (static_cast<Columns>(index.column()))
     {
       case INDEX:
@@ -146,6 +164,12 @@ QVariant SectionHeaderItemModel::data(const QModelIndex& index, int role) const
       default:
         break;
     }
+  }
+  else if (role == SECTION_CONTENTS)
+  {
+    const Section&   section  = _self->elf_file.sections()[idx];
+    std::string_view contents = _self->elf_file.contentsOf(section);
+    return QByteArray(contents.data(), contents.size());
   }
   return QVariant();
 }

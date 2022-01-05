@@ -18,10 +18,9 @@ struct ElfFile::Impl {
 
     for (size_t idx = 0; idx < symbol_count; ++idx)
     {
-      symbols.emplace_back(idx);
-      auto&& symbol    = symbols.back();
+      auto&& symbol    = symbols.emplace_back();
       bool   symbol_ok = symbol_reader.get_symbol(
-        symbol.index,
+        idx,
         symbol.mangled_name,
         symbol.value,
         symbol.size,
@@ -29,13 +28,9 @@ struct ElfFile::Impl {
         symbol.type,
         symbol.section_index,
         symbol.visibility);
-      symbol.name = llvm::demangle(symbol.mangled_name);
+      symbol.index = idx;
+      symbol.name  = llvm::demangle(symbol.mangled_name);
 
-      //      if (symbol.name.empty())
-      //      {
-      //        spdlog::info("Dropping unnamed symbol");
-      //        symbols.pop_back();
-      //      }
       if (symbol_ok)
       {
         spdlog::info("Loaded Symbol: {} {} {:x} {:x}",
@@ -46,7 +41,7 @@ struct ElfFile::Impl {
       }
       else
       {
-        spdlog::info("Failed to load section");
+        spdlog::info("Failed to load symbol at {}", idx);
         symbols.pop_back();
       }
     }
@@ -137,26 +132,46 @@ const std::vector<Symbol>& ElfFile::symbols() const noexcept
   return _self->symbols;
 }
 
-std::string_view ElfFile::contentsOf(const Section& section) const
-{
-  auto idx = section.index;
-  if (idx >= _self->elf_file.sections.size()) { return {}; }
-
-  const auto* section_info = _self->elf_file.sections[idx];
-
-  // If loading failed, we may need to seek for the exact index;
-  if (section_info->get_index() != idx)
+/// Enables comparing between ELFIO::sections via index, as well as compare ELFIO::sections with ints via index.
+/// We need this to map from ELFIO::section, an implementation detail, to the publicly visible Section type.
+struct SectionComparator {
+  bool operator()(const ELFIO::section* lhs, const ELFIO::section* rhs) const
   {
-    if (section_info->get_index() < idx)
-    {
-      // TODO: rfind
-    }
+    return lhs->get_index() < rhs->get_index();
   }
 
-  return {
-    _self->elf_file.sections[section.index]->get_data(),
-    _self->elf_file.sections[section.index]->get_size()
-  };
+  bool operator()(const ELFIO::section* lhs, int rhs) const
+  {
+    return lhs->get_index() < rhs;
+  }
+
+  bool operator()(int lhs, const ELFIO::section* rhs) const
+  {
+    return lhs < rhs->get_index();
+  }
+};
+
+std::string_view ElfFile::contentsOf(const Section& section) const
+{
+  const auto& sections = _self->elf_file.sections;
+  if (sections.size() == 0) { return {}; }
+
+  const auto            idx          = (section.index < sections.size()) ? (section.index) : (0u);
+  const ELFIO::section* section_info = _self->elf_file.sections[idx];
+
+  // If any sections failed to load, position will not be equal to index (though indices will still be monotonic).
+  if (section_info->get_index() != idx)
+  {
+    // In this case, we must (binary) search it out.
+    auto it = std::lower_bound(sections.begin(), sections.end(), section.index, SectionComparator{});
+
+    // If we can't find an exact match, give up
+    if (it == sections.end() || (*it)->get_index() != idx) { return {}; }
+
+    section_info = *it;
+  }
+
+  return { section_info->get_data(), section_info->get_size() };
 }
 
 std::string ElfFile::disassemble(const Symbol& symbol) const

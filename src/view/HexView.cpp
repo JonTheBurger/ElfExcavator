@@ -15,7 +15,6 @@ struct HexView::Impl {
       : self{ that }
   {
     ui.setupUi(&self);
-    QHexDocument* document = QHexDocument::fromMemory<QMemoryBuffer>(nullptr, 0, &self);
     //    QHexMetadata* data     = document->metadata();
     //  data->comment(1, 1, 2, "lol");
     //      document->setHexLineWidth(8);
@@ -32,17 +31,11 @@ HexView::HexView(QWidget* parent)
     : QWidget(parent)
     , _self{ std::make_unique<Impl>(*this) }
 {
-  static char asdf[256] = {};
-  for (auto i = 0; i < 256; ++i)
-  {
-    asdf[i] = i;
-  }
-  setSource(asdf, sizeof(asdf));
 }
 
-void HexView::setSource(void* buffer, size_t size)
+void HexView::setSource(QByteArray source)
 {
-  auto* document = QHexDocument::fromMemory<QMemoryBuffer>(reinterpret_cast<char*>(buffer), size & INT_MAX, this);
+  auto* document = QHexDocument::fromMemory<QMemoryBuffer>(source, this);
   _self->ui.editor->setDocument(document);
 }
 

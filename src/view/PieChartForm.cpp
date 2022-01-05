@@ -2,6 +2,7 @@
 
 #include <QChart>
 #include <QPieSeries>
+#include <QPointer>
 #include <QVPieModelMapper>
 
 #include "ui_PieChartForm.h"
@@ -9,16 +10,20 @@
 struct PieChartForm::Impl {
   Q_DISABLE_COPY(Impl)
 
-  PieChartForm&    self;
-  Ui::PieChartForm ui;
-  QChart           chart;
-  QVPieModelMapper mapper;
+  PieChartForm&       self;
+  Ui::PieChartForm    ui;
+  QChart              chart;
+  QVPieModelMapper    mapper;
+  QPieSeries*         series;
+  QPointer<QPieSlice> previous_explosion;
 
   explicit Impl(PieChartForm& that, QAbstractItemModel& model, int labels_column, int values_column) noexcept
       : self{ that }
       , ui{}
       , chart{}
       , mapper{}
+      , series{}
+      , previous_explosion{}
   {
     ui.setupUi(&self);
     self.setChart(&chart);
@@ -26,7 +31,7 @@ struct PieChartForm::Impl {
     self.setDragMode(QGraphicsView::DragMode::ScrollHandDrag);
     self.setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     self.setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    auto* series = new QPieSeries();
+    series = new QPieSeries();
     chart.addSeries(series);  // [Takes ownership of `series`](https://doc.qt.io/qt-5/qchart.html#addSeries)
     chart.legend()->hide();
     chart.setAnimationOptions(QChart::SeriesAnimations);
@@ -49,6 +54,22 @@ PieChartForm::PieChartForm(QAbstractItemModel& model, int labels_column, int val
     : QChartView(parent)
     , _self{ std::make_unique<Impl>(*this, model, labels_column, values_column) }
 {
+}
+
+void PieChartForm::explodeSlice(const QString& label)
+{
+  QList<QPieSlice*> slices = _self->series->slices();
+  auto              cmp    = [&label](QPieSlice* slice) { return slice->label() == label; };
+  auto              it     = std::find_if(slices.begin(), slices.end(), cmp);
+  if (it != slices.end())
+  {
+    if (_self->previous_explosion)
+    {
+      _self->previous_explosion->setExploded(false);
+    }
+    (*it)->setExploded(true);
+    _self->previous_explosion = *it;
+  }
 }
 
 PieChartForm::~PieChartForm() = default;

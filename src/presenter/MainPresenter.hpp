@@ -19,11 +19,15 @@ public:
                 QObject*                parent = nullptr);
   ~MainPresenter() override;
 
-  QAbstractItemModel& sectionHeaderItemModel() noexcept;
-  QAbstractItemModel& selectedSectionHeaderItemModel() noexcept;
-  SettingsPresenter&  settingsPresenter() noexcept;
-  QAbstractItemModel& symbolTableItemModel() noexcept;
-  QAbstractItemModel& selectedSymbolTableItemModel() noexcept;
+  SectionHeaderItemModel& sectionHeaderItemModel() noexcept;
+  QAbstractItemModel&     sectionHeaderDisplayModel() noexcept;
+  QAbstractItemModel&     sectionHeaderCheckedModel() noexcept;
+
+  SymbolTableItemModel& symbolTableItemModel() noexcept;
+  QAbstractItemModel&   symbolTableDisplayModel() noexcept;
+  QAbstractItemModel&   symbolTableCheckedModel() noexcept;
+
+  SettingsPresenter& settingsPresenter() noexcept;
 
 private:
   struct Impl;

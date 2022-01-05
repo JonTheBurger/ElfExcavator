@@ -7,8 +7,6 @@
 #include <vector>
 
 struct Section {
-  Section() = default;
-
   uint16_t    index;
   std::string name;
   uint32_t    type;
@@ -68,13 +66,6 @@ struct fmt::formatter<Section> {
 };
 
 struct Symbol {
-  Symbol() = default;
-
-  explicit Symbol(size_t symbol_index)
-      : index{ symbol_index }
-  {
-  }
-
   uint64_t    index;
   std::string name;
   std::string mangled_name;

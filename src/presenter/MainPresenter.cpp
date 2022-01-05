@@ -132,29 +132,39 @@ MainPresenter::MainPresenter(SectionHeaderItemModel& section_header_item_model,
 {
 }
 
+SectionHeaderItemModel& MainPresenter::sectionHeaderItemModel() noexcept
+{
+  return _self->section_header_item_model;
+}
+
 MainPresenter::~MainPresenter() = default;
 
-QAbstractItemModel& MainPresenter::sectionHeaderItemModel() noexcept
+QAbstractItemModel& MainPresenter::sectionHeaderDisplayModel() noexcept
 {
   return _self->section_header_check_proxy;
 }
 
-QAbstractItemModel& MainPresenter::selectedSectionHeaderItemModel() noexcept
+QAbstractItemModel& MainPresenter::sectionHeaderCheckedModel() noexcept
 {
   return _self->section_header_selection_proxy;
+}
+
+SymbolTableItemModel& MainPresenter::symbolTableItemModel() noexcept
+{
+  return _self->symbol_table_item_model;
+}
+
+QAbstractItemModel& MainPresenter::symbolTableDisplayModel() noexcept
+{
+  return _self->symbol_table_check_proxy;
+}
+
+QAbstractItemModel& MainPresenter::symbolTableCheckedModel() noexcept
+{
+  return _self->symbol_table_selection_proxy;
 }
 
 SettingsPresenter& MainPresenter::settingsPresenter() noexcept
 {
   return _self->settings_presenter;
-}
-
-QAbstractItemModel& MainPresenter::symbolTableItemModel() noexcept
-{
-  return _self->symbol_table_check_proxy;
-}
-
-QAbstractItemModel& MainPresenter::selectedSymbolTableItemModel() noexcept
-{
-  return _self->symbol_table_selection_proxy;
 }

@@ -12,6 +12,7 @@ class PieChartForm final : public QChartView {
 public:
   explicit PieChartForm(QAbstractItemModel& model, int labels_column, int values_column, QWidget* parent = nullptr);
   ~PieChartForm() override;
+  void explodeSlice(const QString& label);
 
 signals:
   void sliceSelected(const QString& label);

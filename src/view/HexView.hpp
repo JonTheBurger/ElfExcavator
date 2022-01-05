@@ -11,7 +11,7 @@ public:
   explicit HexView(QWidget* parent = nullptr);
   ~HexView() override;
 
-  void setSource(void* buffer, size_t size);
+  void setSource(QByteArray source);
 
 private:
   struct Impl;

@@ -17,12 +17,10 @@
 struct MainWindow::Impl {
   Q_DISABLE_COPY(Impl)
 
-  MainWindow&          self;
-  Ui::MainWindow       ui;
-  MainPresenter&       presenter;
-  ads::CDockManager*   dock;
-  QItemSelectionModel* symsel;
-  QItemSelectionModel* secsel;
+  MainWindow&        self;
+  Ui::MainWindow     ui;
+  MainPresenter&     presenter;
+  ads::CDockManager* dock;
 
   explicit Impl(MainWindow& that, MainPresenter& present) noexcept
       : self{ that }
@@ -57,7 +55,7 @@ struct MainWindow::Impl {
   void initSettingsDock()
   {
     auto* widget = new SettingsForm(presenter.settingsPresenter(), &self);
-    addDock("Settings", widget, ads::TopDockWidgetArea);
+    addDock("Settings", widget, ads::BottomDockWidgetArea);
   }
 
   void initLogOutputDock()
@@ -65,62 +63,88 @@ struct MainWindow::Impl {
     auto* widget          = new QPlainTextEdit();
     auto  widget_log_sink = std::make_shared<spdlog::sinks::qt_sink_mt>(widget, "appendPlainText");
     spdlog::get("")->sinks().push_back(std::move(widget_log_sink));
-    addDock("Log Output", widget, ads::BottomDockWidgetArea);
+    addDockTab("Log Output", widget, ads::BottomDockWidgetArea);
   }
 
-  void initSectionHeaderDock()
+  MultiFilterTableView& initSectionHeaderDock()
   {
     auto* widget = new MultiFilterTableView(&self);
-    widget->setModel(&presenter.sectionHeaderItemModel());
-    secsel = widget->selectionModel();
-    addDockTab("Section Headers", widget, ads::BottomDockWidgetArea);
+    // Using QAbstractItemView::SelectionBehavior::SelectRows forces the row of QModelIndex in the
+    // QAbstractItemView::selectionChanged signal to be indexable by SectionHeaderItemModel::Columns.
+    widget->setModel(&presenter.sectionHeaderDisplayModel());
+    widget->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
+    addDock("Section Headers", widget, ads::CenterDockWidgetArea);
+    return *widget;
   }
 
-  void initSymbolTableDock()
+  MultiFilterTableView& initSymbolTableDock()
   {
     auto* widget = new MultiFilterTableView(&self);
-    widget->setModel(&presenter.symbolTableItemModel());
-    symsel = widget->selectionModel();
-    addDockTab("Symbol Table", widget, ads::BottomDockWidgetArea);
+    widget->setModel(&presenter.symbolTableDisplayModel());
+    widget->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
+    addDockTab("Symbol Table", widget, ads::CenterDockWidgetArea);
+    return *widget;
   }
 
-  void initSectionHeaderChartDock()
+  void initSectionHeaderChartDock(MultiFilterTableView& table)
   {
-    auto* widget = new PieChartForm(presenter.selectedSectionHeaderItemModel(),
+    auto* widget = new PieChartForm(presenter.sectionHeaderCheckedModel(),
                                     SectionHeaderItemModel::NAME,
                                     SectionHeaderItemModel::SIZE,
                                     &self);
-    addDockTab("Section Headers", widget, ads::TopDockWidgetArea);
+    connect(table.selectionModel(), &QItemSelectionModel::selectionChanged, [widget](const QItemSelection& selected, const QItemSelection&) {
+      if (!selected.indexes().empty())
+      {
+        auto section_name = selected.indexes()[SectionHeaderItemModel::NAME].data().toString();
+        widget->explodeSlice(section_name);
+      }
+    });
+    connect(widget, &PieChartForm::sliceSelected, [this, &table](const QString& label) {
+      auto idx = presenter.sectionHeaderItemModel().indexOfSection(label);
+      table.selectRow(idx.row());
+      table.scrollTo(idx);
+    });
+    addDock("Section Headers", widget, ads::TopDockWidgetArea);
   }
 
-  void initSymbolTableChartDock()
+  void initSymbolTableChartDock(MultiFilterTableView& table)
   {
-    auto* widget = new PieChartForm(presenter.selectedSymbolTableItemModel(),
+    auto* widget = new PieChartForm(presenter.symbolTableCheckedModel(),
                                     SymbolTableItemModel::DEMANGLED_NAME,
                                     SymbolTableItemModel::SIZE,
                                     &self);
-    symsel->connect(symsel, &QItemSelectionModel::selectionChanged, [this, widget](const QItemSelection& selected, const QItemSelection& deselected) {
+    connect(table.selectionModel(), &QItemSelectionModel::selectionChanged, [widget](const QItemSelection& selected, const QItemSelection&) {
       if (!selected.indexes().empty())
       {
-        auto idx = selected.indexes()[0].row();
+        auto section_name = selected.indexes()[SymbolTableItemModel::DEMANGLED_NAME].data().toString();
+        widget->explodeSlice(section_name);
       }
-      else
-      {
-      }
+    });
+    connect(widget, &PieChartForm::sliceSelected, [this, &table](const QString& label) {
+      auto idx = presenter.symbolTableItemModel().indexOfSymbol(label);
+      table.selectRow(idx.row());
+      table.scrollTo(idx);
     });
     addDockTab("Symbol Table", widget, ads::TopDockWidgetArea);
   }
 
-  void initSectionHeaderHexDock()
+  void initSectionHeaderHexDock(QItemSelectionModel* selection_model)
   {
     auto* widget = new HexView(&self);
-    addDockTab("Section Contents", widget, ads::TopDockWidgetArea);
+    addDock("Section Contents", widget, ads::RightDockWidgetArea);
+    connect(selection_model, &QItemSelectionModel::selectionChanged, [this, widget](const QItemSelection& selected, const QItemSelection& deselected) {
+      if (!selected.indexes().empty())
+      {
+        auto contents = selected.indexes()[0].data(SectionHeaderItemModel::Role::SECTION_CONTENTS).toByteArray();
+        widget->setSource(contents);
+      }
+    });
   }
 
   void initSymbolTableHexDock()
   {
     auto* widget = new HexView(&self);
-    addDockTab("Disassembly", widget, ads::TopDockWidgetArea);
+    addDockTab("Disassembly", widget, ads::RightDockWidgetArea);
   }
 };
 
@@ -128,14 +152,17 @@ MainWindow::MainWindow(MainPresenter& present, QWidget* parent)
     : QMainWindow(parent)
     , _self{ std::make_unique<Impl>(*this, present) }
 {
+  auto&& section_header_table = _self->initSectionHeaderDock();
+  auto&& symbol_table         = _self->initSymbolTableDock();
+
   _self->initSettingsDock();
   _self->initLogOutputDock();
-  _self->initSectionHeaderDock();
-  _self->initSymbolTableDock();
-  _self->initSectionHeaderChartDock();
-  _self->initSectionHeaderHexDock();
-  _self->initSymbolTableChartDock();
+
+  _self->initSectionHeaderHexDock(section_header_table.selectionModel());
   _self->initSymbolTableHexDock();
+
+  _self->initSectionHeaderChartDock(section_header_table);
+  _self->initSymbolTableChartDock(symbol_table);
 }
 
 MainWindow::~MainWindow() = default;

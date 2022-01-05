@@ -14,7 +14,8 @@ class SectionHeaderItemModel : public QAbstractTableModel {
 public:
   explicit SectionHeaderItemModel(ElfFile& elf_file, QObject* parent = nullptr);
   ~SectionHeaderItemModel() override;
-  void onElfFileLoaded();
+  void        onElfFileLoaded();
+  QModelIndex indexOfSection(QStringView name);
 
   // Overrides
   QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
@@ -24,7 +25,7 @@ public:
 
   enum Columns {
     INDEX,
-    NAME,
+    NAME,  ///< QString
     SIZE,
     ADDRESS,
     LOAD_ADDRESS,
@@ -36,7 +37,7 @@ public:
   };
 
   enum Role {
-    Raw = Qt::UserRole,
+    SECTION_CONTENTS = Qt::UserRole,  ///< QByteArray
   };
 
   enum Flag {

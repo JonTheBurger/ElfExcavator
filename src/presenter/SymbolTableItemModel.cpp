@@ -29,6 +29,24 @@ void SymbolTableItemModel::onElfFileLoaded()
   endResetModel();
 }
 
+QModelIndex SymbolTableItemModel::indexOfSymbol(QStringView demangled_name)
+{
+  const auto& symbols     = _self->elf_file.symbols();
+  std::string symbol_name = demangled_name.toString().toStdString();
+
+  auto it = std::find_if(symbols.begin(), symbols.end(), [&symbol_name](const Symbol& symbol) {
+    return symbol.name == symbol_name;
+  });
+
+  if (it == symbols.end())
+  {
+    return {};
+  }
+
+  auto row = std::distance(symbols.begin(), it);
+  return index(row, 0);
+}
+
 SymbolTableItemModel::~SymbolTableItemModel() = default;
 
 QVariant SymbolTableItemModel::headerData(int section, Qt::Orientation orientation, int role) const
