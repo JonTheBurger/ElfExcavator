@@ -3,6 +3,7 @@
 #include <QObject>
 #include <memory>
 
+class ElfFile;
 class QAbstractItemModel;
 class SectionHeaderItemModel;
 class SettingsPresenter;

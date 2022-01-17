@@ -1,5 +1,6 @@
 #include "SettingsPresenter.hpp"
 
+#include <QStandardPaths>
 #include <QString>
 
 #include "model/ElfFile.hpp"
@@ -16,7 +17,7 @@ struct SettingsPresenter::Impl {
       : self{ that }
       , elf_file{ elf_file_ }
       , elf_file_path{}
-      , objdump_path{}
+      , objdump_path{ QStandardPaths::findExecutable("objdump") }
   {
   }
 };

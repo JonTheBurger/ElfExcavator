@@ -8,6 +8,7 @@
 
 struct ElfFile::Impl {
   ELFIO::elfio         elf_file;
+  std::string          file_name;
   std::vector<Section> sections;
   std::vector<Symbol>  symbols;
 
@@ -93,6 +94,11 @@ bool ElfFile::isElfFile(const char* path)
   return ok;
 }
 
+const std::string& ElfFile::name() const noexcept
+{
+  return _self->file_name;
+}
+
 bool ElfFile::load(const char* file)
 {
   return load(std::string{ file });
@@ -101,7 +107,8 @@ bool ElfFile::load(const char* file)
 bool ElfFile::load(const std::string& file)
 {
   spdlog::info("[start] Loading Sections");
-  bool ok = _self->elf_file.load(file);
+  _self->file_name = file;
+  bool ok          = _self->elf_file.load(_self->file_name);
   if (!ok) { spdlog::error("[end] Loading Sections"); }
   spdlog::info("[end] Loading Sections");
 
@@ -172,9 +179,4 @@ std::string_view ElfFile::contentsOf(const Section& section) const
   }
 
   return { section_info->get_data(), section_info->get_size() };
-}
-
-std::string ElfFile::disassemble(const Symbol& symbol) const
-{
-  return {};
 }

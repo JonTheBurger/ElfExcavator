@@ -1,18 +1,47 @@
 #include "MainWindow.hpp"
 
 #include <DockManager.h>
-#include <QPlainTextEdit>
+#include <QProcess>
+#include <QTextBrowser>
 #include <spdlog/sinks/qt_sinks.h>
 #include <spdlog/spdlog.h>
 
+#include "CxxDisassemblyHighlighter.hpp"
 #include "HexView.hpp"
 #include "MultiFilterTableView.hpp"
 #include "PieChartForm.hpp"
 #include "SettingsForm.hpp"
 #include "presenter/MainPresenter.hpp"
 #include "presenter/SectionHeaderItemModel.hpp"
+#include "presenter/SettingsPresenter.hpp"
 #include "presenter/SymbolTableItemModel.hpp"
 #include "ui_MainWindow.h"
+
+static void disassembleToAsync(const QString& objdump, const QString& executable, QTextBrowser* widget, const QString& section, quint64 address, quint64 size)
+{
+  auto* process = new QProcess;
+  QObject::connect(process,
+                   static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+                   [widget, process](int exitCode, QProcess::ExitStatus exitStatus) {
+                     if (exitCode == 0 && exitStatus == QProcess::ExitStatus::NormalExit)
+                     {
+                       widget->setText(process->readAllStandardOutput());
+                     }
+                     else
+                     {
+                       widget->clear();
+                     }
+                     process->deleteLater();
+                   });
+  process->start(objdump,
+                 { "--start-address",
+                   QString::number(address),
+                   "--stop-address",
+                   QString::number(address + size),
+                   "-CSj",  // Demangle, Display Source, Only for section
+                   section,
+                   executable });
+}
 
 struct MainWindow::Impl {
   Q_DISABLE_COPY(Impl)
@@ -132,7 +161,7 @@ struct MainWindow::Impl {
   {
     auto* widget = new HexView(&self);
     addDock("Section Contents", widget, ads::RightDockWidgetArea);
-    connect(selection_model, &QItemSelectionModel::selectionChanged, [this, widget](const QItemSelection& selected, const QItemSelection& deselected) {
+    connect(selection_model, &QItemSelectionModel::selectionChanged, [this, widget](const QItemSelection& selected, const QItemSelection&) {
       if (!selected.indexes().empty())
       {
         auto contents = selected.indexes()[0].data(SectionHeaderItemModel::Role::SECTION_CONTENTS).toByteArray();
@@ -141,10 +170,26 @@ struct MainWindow::Impl {
     });
   }
 
-  void initSymbolTableHexDock()
+  void initSymbolTableDisassemblyDock(QItemSelectionModel* selection_model)
   {
-    auto* widget = new HexView(&self);
+    auto* widget = new QTextBrowser(&self);
+    new CxxDisassemblyHighlighter(widget->document());
     addDockTab("Disassembly", widget, ads::RightDockWidgetArea);
+    connect(selection_model, &QItemSelectionModel::selectionChanged, [this, widget](const QItemSelection& selected, const QItemSelection&) {
+      if (!selected.indexes().empty())
+      {
+        auto section = selected.indexes()[SymbolTableItemModel::Columns::SECTION].data().toString();
+        auto address = selected.indexes()[SymbolTableItemModel::Columns::VALUE].data().toULongLong();
+        auto size    = selected.indexes()[SymbolTableItemModel::Columns::SIZE].data().toULongLong();
+        disassembleToAsync(
+          presenter.settingsPresenter().objdumpPath(),
+          presenter.settingsPresenter().elfFile(),
+          widget,
+          section,
+          address,
+          size);
+      }
+    });
   }
 };
 
@@ -159,7 +204,7 @@ MainWindow::MainWindow(MainPresenter& present, QWidget* parent)
   _self->initLogOutputDock();
 
   _self->initSectionHeaderHexDock(section_header_table.selectionModel());
-  _self->initSymbolTableHexDock();
+  _self->initSymbolTableDisassemblyDock(symbol_table.selectionModel());
 
   _self->initSectionHeaderChartDock(section_header_table);
   _self->initSymbolTableChartDock(symbol_table);

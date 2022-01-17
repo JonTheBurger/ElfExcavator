@@ -83,6 +83,8 @@ add_library(ElfExcavator.Core
   src/presenter/SettingsPresenter.hpp
   src/presenter/SymbolTableItemModel.cpp
   src/presenter/SymbolTableItemModel.hpp
+  src/view/CxxDisassemblyHighlighter.cpp
+  src/view/CxxDisassemblyHighlighter.hpp
   src/view/HexNumberDelegate.cpp
   src/view/HexNumberDelegate.hpp
   src/view/HexView.cpp

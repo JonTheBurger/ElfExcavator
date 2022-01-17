@@ -132,12 +132,12 @@ public:
    */
   static bool isElfFile(const char* path);
 
+  auto name() const noexcept -> const std::string&;
   auto load(const char* file) -> bool;
   auto load(const std::string& file) -> bool;
   auto sections() const noexcept -> const std::vector<Section>&;
   auto symbols() const noexcept -> const std::vector<Symbol>&;
   auto contentsOf(const Section& section) const -> std::string_view;
-  auto disassemble(const Symbol& symbol) const -> std::string;
 
 private:
   struct Impl;

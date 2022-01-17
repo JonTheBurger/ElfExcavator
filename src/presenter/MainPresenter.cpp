@@ -9,6 +9,7 @@
 #include "SectionHeaderItemModel.hpp"
 #include "SettingsPresenter.hpp"
 #include "SymbolTableItemModel.hpp"
+#include "model/ElfFile.hpp"
 
 struct MainPresenter::Impl {
   Q_DISABLE_COPY(Impl)
@@ -120,10 +121,7 @@ struct MainPresenter::Impl {
   }
 };
 
-MainPresenter::MainPresenter(SectionHeaderItemModel& section_header_item_model,
-                             SettingsPresenter&      settings_presenter,
-                             SymbolTableItemModel&   symbol_table_item_model,
-                             QObject*                parent)
+MainPresenter::MainPresenter(SectionHeaderItemModel& section_header_item_model, SettingsPresenter& settings_presenter, SymbolTableItemModel& symbol_table_item_model, QObject* parent)
     : QObject(parent)
     , _self{ std::make_unique<Impl>(*this,
                                     section_header_item_model,
