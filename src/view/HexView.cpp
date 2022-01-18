@@ -15,6 +15,7 @@ struct HexView::Impl {
       : self{ that }
   {
     ui.setupUi(&self);
+    // TODO: Implement Search
     //    QHexMetadata* data     = document->metadata();
     //  data->comment(1, 1, 2, "lol");
     //      document->setHexLineWidth(8);

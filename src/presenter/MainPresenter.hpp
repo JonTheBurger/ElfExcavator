@@ -4,7 +4,7 @@
 #include <memory>
 
 class ElfFile;
-class QAbstractItemModel;
+class QAbstractProxyModel;
 class SectionHeaderItemModel;
 class SettingsPresenter;
 class SymbolTableItemModel;
@@ -21,12 +21,12 @@ public:
   ~MainPresenter() override;
 
   SectionHeaderItemModel& sectionHeaderItemModel() noexcept;
-  QAbstractItemModel&     sectionHeaderDisplayModel() noexcept;
-  QAbstractItemModel&     sectionHeaderCheckedModel() noexcept;
+  QAbstractProxyModel&    sectionHeaderDisplayModel() noexcept;
+  QAbstractProxyModel&    sectionHeaderCheckedModel() noexcept;
 
   SymbolTableItemModel& symbolTableItemModel() noexcept;
-  QAbstractItemModel&   symbolTableDisplayModel() noexcept;
-  QAbstractItemModel&   symbolTableCheckedModel() noexcept;
+  QAbstractProxyModel&  symbolTableDisplayModel() noexcept;
+  QAbstractProxyModel&  symbolTableCheckedModel() noexcept;
 
   SettingsPresenter& settingsPresenter() noexcept;
 

@@ -8,10 +8,12 @@
 
 #include "CxxDisassemblyHighlighter.hpp"
 #include "HexView.hpp"
+#include "LogHighlighter.hpp"
 #include "MultiFilterTableView.hpp"
 #include "PieChartForm.hpp"
 #include "SettingsForm.hpp"
 #include "presenter/MainPresenter.hpp"
+#include "presenter/MultiFilterProxyModel.hpp"
 #include "presenter/SectionHeaderItemModel.hpp"
 #include "presenter/SettingsPresenter.hpp"
 #include "presenter/SymbolTableItemModel.hpp"
@@ -84,15 +86,17 @@ struct MainWindow::Impl {
   void initSettingsDock()
   {
     auto* widget = new SettingsForm(presenter.settingsPresenter(), &self);
-    addDock("Settings", widget, ads::BottomDockWidgetArea);
+    addDock(tr("Settings"), widget, ads::BottomDockWidgetArea);
   }
 
   void initLogOutputDock()
   {
-    auto* widget          = new QPlainTextEdit();
-    auto  widget_log_sink = std::make_shared<spdlog::sinks::qt_sink_mt>(widget, "appendPlainText");
+    auto* widget = new QTextBrowser();
+    widget->setFontFamily("Monospace");
+    new LogHighlighter(widget->document());
+    auto widget_log_sink = std::make_shared<spdlog::sinks::qt_sink_mt>(widget, "append");
     spdlog::get("")->sinks().push_back(std::move(widget_log_sink));
-    addDockTab("Log Output", widget, ads::BottomDockWidgetArea);
+    addDockTab(tr("Log Output"), widget, ads::BottomDockWidgetArea);
   }
 
   MultiFilterTableView& initSectionHeaderDock()
@@ -102,7 +106,7 @@ struct MainWindow::Impl {
     // QAbstractItemView::selectionChanged signal to be indexable by SectionHeaderItemModel::Columns.
     widget->setModel(&presenter.sectionHeaderDisplayModel());
     widget->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
-    addDock("Section Headers", widget, ads::CenterDockWidgetArea);
+    addDock(tr("Section Headers"), widget, ads::CenterDockWidgetArea);
     return *widget;
   }
 
@@ -111,7 +115,7 @@ struct MainWindow::Impl {
     auto* widget = new MultiFilterTableView(&self);
     widget->setModel(&presenter.symbolTableDisplayModel());
     widget->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
-    addDockTab("Symbol Table", widget, ads::CenterDockWidgetArea);
+    addDockTab(tr("Symbol Table"), widget, ads::CenterDockWidgetArea);
     return *widget;
   }
 
@@ -129,11 +133,14 @@ struct MainWindow::Impl {
       }
     });
     connect(widget, &PieChartForm::sliceSelected, [this, &table](const QString& label) {
+      // FIXME: This index juggling should be done through main presenter
       auto idx = presenter.sectionHeaderItemModel().indexOfSection(label);
+      idx      = presenter.sectionHeaderDisplayModel().mapFromSource(idx);
+      idx      = table.model()->mapFromSource(idx);
       table.selectRow(idx.row());
       table.scrollTo(idx);
     });
-    addDock("Section Headers", widget, ads::TopDockWidgetArea);
+    addDock(tr("Section Headers"), widget, ads::TopDockWidgetArea);
   }
 
   void initSymbolTableChartDock(MultiFilterTableView& table)
@@ -150,18 +157,21 @@ struct MainWindow::Impl {
       }
     });
     connect(widget, &PieChartForm::sliceSelected, [this, &table](const QString& label) {
+      // FIXME: This index juggling should be done through main presenter
       auto idx = presenter.symbolTableItemModel().indexOfSymbol(label);
+      idx      = presenter.symbolTableDisplayModel().mapFromSource(idx);
+      idx      = table.model()->mapFromSource(idx);
       table.selectRow(idx.row());
       table.scrollTo(idx);
     });
-    addDockTab("Symbol Table", widget, ads::TopDockWidgetArea);
+    addDockTab(tr("Symbol Table"), widget, ads::TopDockWidgetArea);
   }
 
   void initSectionHeaderHexDock(QItemSelectionModel* selection_model)
   {
     auto* widget = new HexView(&self);
-    addDock("Section Contents", widget, ads::RightDockWidgetArea);
-    connect(selection_model, &QItemSelectionModel::selectionChanged, [this, widget](const QItemSelection& selected, const QItemSelection&) {
+    addDock(tr("Section Contents"), widget, ads::RightDockWidgetArea);
+    connect(selection_model, &QItemSelectionModel::selectionChanged, [widget](const QItemSelection& selected, const QItemSelection&) {
       if (!selected.indexes().empty())
       {
         auto contents = selected.indexes()[0].data(SectionHeaderItemModel::Role::SECTION_CONTENTS).toByteArray();
@@ -173,8 +183,9 @@ struct MainWindow::Impl {
   void initSymbolTableDisassemblyDock(QItemSelectionModel* selection_model)
   {
     auto* widget = new QTextBrowser(&self);
+    widget->setFontFamily("Monospace");
     new CxxDisassemblyHighlighter(widget->document());
-    addDockTab("Disassembly", widget, ads::RightDockWidgetArea);
+    addDockTab(tr("Disassembly"), widget, ads::RightDockWidgetArea);
     connect(selection_model, &QItemSelectionModel::selectionChanged, [this, widget](const QItemSelection& selected, const QItemSelection&) {
       if (!selected.indexes().empty())
       {

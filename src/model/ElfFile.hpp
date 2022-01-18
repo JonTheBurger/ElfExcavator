@@ -16,6 +16,7 @@ struct Section {
   uint64_t    addr_align;
   uint64_t    entry_size;
   uint64_t    address;
+  uint64_t    load_address;
   uint64_t    size;
   uint32_t    name_string_offset;
   uint64_t    offset;

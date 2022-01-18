@@ -16,6 +16,8 @@ struct PieChartForm::Impl {
   QVPieModelMapper    mapper;
   QPieSeries*         series;
   QPointer<QPieSlice> previous_explosion;
+  QList<QColor>       palette;
+  int                 palette_idx;
 
   explicit Impl(PieChartForm& that, QAbstractItemModel& model, int labels_column, int values_column) noexcept
       : self{ that }
@@ -24,6 +26,21 @@ struct PieChartForm::Impl {
       , mapper{}
       , series{}
       , previous_explosion{}
+      , palette{
+        QColor::fromRgb(0x2176FF),  // Blue Crayola
+        QColor::fromRgb(0xFDCA40),  // Sunglow
+        QColor::fromRgb(0xF79824),  // Yellow Orange Color Wheel
+        QColor::fromRgb(0x44CF6C),  // Emerald
+        QColor::fromRgb(0x8963BA),  // Amethyst
+        QColor::fromRgb(0xE2C290),  // Gold Crayola
+        QColor::fromRgb(0x33A1FD),  // Blue Jeans
+        QColor::fromRgb(0xF7567C),  // Bright Pink
+        QColor::fromRgb(0x54428E),  // Dark Slate Blue
+        QColor::fromRgb(0x6C464E),  // Eggplant
+        QColor::fromRgb(0x036D19),  // Pakistan Green
+        QColor::fromRgb(0xF0386B),  // Paradise Pink
+      }
+      , palette_idx{ 0 }
   {
     ui.setupUi(&self);
     self.setChart(&chart);
@@ -42,6 +59,13 @@ struct PieChartForm::Impl {
     });
     connect(series, &QPieSeries::clicked, [this](QPieSlice* slice) {
       emit self.sliceSelected(slice->label());
+    });
+    connect(series, &QPieSeries::added, [this](QList<QPieSlice*> slices) {
+      for (auto&& slice : slices)
+      {
+        slice->setColor(palette[palette_idx++]);
+        palette_idx >= palette.size() ? (palette_idx = 0) : (0);
+      }
     });
     mapper.setModel(&model);
     mapper.setLabelsColumn(labels_column);

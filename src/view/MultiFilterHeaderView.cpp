@@ -2,6 +2,7 @@
 
 #include <QHeaderView>
 #include <QLineEdit>
+#include <QMenu>
 #include <QScrollBar>
 
 #include "MultiFilterTableView.hpp"
@@ -44,6 +45,19 @@ struct MultiFilterHeaderView::Impl {
 
     self.setSectionsClickable(true);
     self.setSectionsMovable(true);
+
+    QMenu* menu                = new QMenu(&that);
+    auto*  fit_to_frame_action = new QAction(tr("Fit to frame"), &that);
+    connect(fit_to_frame_action, &QAction::triggered, [&that]() {
+      that.resizeSections(QHeaderView::ResizeMode::Stretch);
+      that.resizeSections(QHeaderView::ResizeMode::Interactive);
+      that.updateGeometries();
+    });
+    menu->addAction(fit_to_frame_action);
+    that.setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(&that, &MultiFilterTableView::customContextMenuRequested, [&that, menu](QPoint position) {
+      menu->popup(that.mapToGlobal(position));
+    });
   }
 
   void drawLabels()

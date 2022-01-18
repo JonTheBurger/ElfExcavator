@@ -4,6 +4,7 @@
 #include <fstream>
 #include <llvm/Demangle/Demangle.h>
 #include <spdlog/spdlog.h>
+#include <string_view>
 #include <vector>
 
 struct ElfFile::Impl {
@@ -30,7 +31,7 @@ struct ElfFile::Impl {
         symbol.section_index,
         symbol.visibility);
       symbol.index = idx;
-      symbol.name  = llvm::demangle(symbol.mangled_name);
+      symbol.name  = demangle(symbol.mangled_name);
 
       if (symbol_ok)
       {
@@ -47,6 +48,26 @@ struct ElfFile::Impl {
       }
     }
   }
+
+  /** Demangles and unversions a symbol name. Symbols with a version may break objdump -- investigate!
+   * @param[in,out] mangled Symbol name that may contain a version, such as `@@GLIBC_2.2.5`.
+   *   The version will be removed.
+   * @returns demangled + versioned symbol
+   */
+  static std::string demangle(std::string& mangled)
+  {
+    using namespace std::string_view_literals;
+    auto version_tag = mangled.find("@@"sv);
+
+    if (version_tag != std::string::npos)
+    {
+      std::string version = mangled.substr(version_tag);
+      mangled             = std::move(mangled).substr(0, version_tag);
+      return llvm::demangle(mangled) + std::move(version);
+    }
+
+    return llvm::demangle(mangled);
+  }
 };
 
 static Section sectionFrom(ELFIO::section* section_header)
@@ -61,6 +82,7 @@ static Section sectionFrom(ELFIO::section* section_header)
   section.addr_align         = section_header->get_addr_align();
   section.entry_size         = section_header->get_entry_size();
   section.address            = section_header->get_address();
+  section.load_address       = section.address;
   section.size               = section_header->get_size();
   section.name_string_offset = section_header->get_name_string_offset();
   section.offset             = section_header->get_offset();
@@ -117,6 +139,20 @@ bool ElfFile::load(const std::string& file)
   {
     _self->sections.push_back(sectionFrom(section_header));
     spdlog::info("Opened Section: {}", _self->sections.back());
+
+    spdlog::info("[start] Checking Segments");
+    for (auto i = 0u; i < _self->elf_file.segments.size(); ++i)
+    {
+      auto   virtual_address = _self->elf_file.segments[i]->get_virtual_address();
+      auto&& section         = _self->sections.back();
+
+      if (virtual_address == section.address)
+      {
+        section.load_address = _self->elf_file.segments[i]->get_physical_address();
+        spdlog::info("section: {}, virtual: {:x}, physical: {:x}", section.name, section.address, section.load_address);
+      }
+    }
+    spdlog::info("[end] Checking Segments");
 
     if ((section_header->get_type() != SHT_SYMTAB)) { continue; }
     const ELFIO::symbol_section_accessor symbol_reader(_self->elf_file, section_header);

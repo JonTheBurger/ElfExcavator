@@ -115,8 +115,7 @@ QVariant SectionHeaderItemModel::data(const QModelIndex& index, int role) const
       case ADDRESS:
         return static_cast<quint64>(_self->elf_file.sections()[idx].address);
       case LOAD_ADDRESS:
-        // TODO: Determine
-        return static_cast<quint64>(_self->elf_file.sections()[idx].address);
+        return static_cast<quint64>(_self->elf_file.sections()[idx].load_address);
       case ALIGNMENT:
         return static_cast<quint16>(_self->elf_file.sections()[idx].addr_align);
       case TYPE:

@@ -89,6 +89,8 @@ add_library(ElfExcavator.Core
   src/view/HexNumberDelegate.hpp
   src/view/HexView.cpp
   src/view/HexView.hpp
+  src/view/LogHighlighter.cpp
+  src/view/LogHighlighter.hpp
   src/view/MainWindow.cpp
   src/view/MainWindow.hpp
   src/view/MultiFilterHeaderView.cpp
