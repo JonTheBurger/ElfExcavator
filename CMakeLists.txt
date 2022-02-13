@@ -69,43 +69,45 @@ find_package(Qt5 5.9 REQUIRED COMPONENTS Core Charts Gui Widgets Qml)
 add_subdirectory(external EXCLUDE_FROM_ALL)
 
 add_library(ElfExcavator.Core
-  src/model/ElfFile.cpp
-  src/model/ElfFile.hpp
-  src/model/TextFilter.cpp
-  src/model/TextFilter.hpp
-  src/presenter/MainPresenter.cpp
-  src/presenter/MainPresenter.hpp
-  src/presenter/MultiFilterProxyModel.cpp
-  src/presenter/MultiFilterProxyModel.hpp
-  src/presenter/SectionHeaderItemModel.cpp
-  src/presenter/SectionHeaderItemModel.hpp
-  src/presenter/SettingsPresenter.cpp
-  src/presenter/SettingsPresenter.hpp
-  src/presenter/SymbolTableItemModel.cpp
-  src/presenter/SymbolTableItemModel.hpp
-  src/view/CxxDisassemblyHighlighter.cpp
-  src/view/CxxDisassemblyHighlighter.hpp
-  src/view/HexNumberDelegate.cpp
-  src/view/HexNumberDelegate.hpp
-  src/view/HexView.cpp
-  src/view/HexView.hpp
-  src/view/LogHighlighter.cpp
-  src/view/LogHighlighter.hpp
-  src/view/MainWindow.cpp
-  src/view/MainWindow.hpp
-  src/view/MultiFilterHeaderView.cpp
-  src/view/MultiFilterHeaderView.hpp
-  src/view/MultiFilterTableView.cpp
-  src/view/MultiFilterTableView.hpp
-  src/view/PieChartForm.cpp
-  src/view/PieChartForm.hpp
-  src/view/SettingsForm.cpp
-  src/view/SettingsForm.hpp
+  STATIC
+    src/model/ByteConversion.cpp
+    src/model/ByteConversion.hpp
+    src/model/ElfFile.cpp
+    src/model/ElfFile.hpp
+    src/model/TextFilter.cpp
+    src/model/TextFilter.hpp
+    src/presenter/MainPresenter.cpp
+    src/presenter/MainPresenter.hpp
+    src/presenter/MultiFilterProxyModel.cpp
+    src/presenter/MultiFilterProxyModel.hpp
+    src/presenter/SectionHeaderItemModel.cpp
+    src/presenter/SectionHeaderItemModel.hpp
+    src/presenter/SettingsPresenter.cpp
+    src/presenter/SettingsPresenter.hpp
+    src/presenter/SymbolTableItemModel.cpp
+    src/presenter/SymbolTableItemModel.hpp
+    src/view/CxxDisassemblyHighlighter.cpp
+    src/view/CxxDisassemblyHighlighter.hpp
+    src/view/HexNumberDelegate.cpp
+    src/view/HexNumberDelegate.hpp
+    src/view/HexView.cpp
+    src/view/HexView.hpp
+    src/view/LogHighlighter.cpp
+    src/view/LogHighlighter.hpp
+    src/view/MainWindow.cpp
+    src/view/MainWindow.hpp
+    src/view/MultiFilterHeaderView.cpp
+    src/view/MultiFilterHeaderView.hpp
+    src/view/MultiFilterTableView.cpp
+    src/view/MultiFilterTableView.hpp
+    src/view/PieChartForm.cpp
+    src/view/PieChartForm.hpp
+    src/view/SettingsForm.cpp
+    src/view/SettingsForm.hpp
 )
 target_include_directories(ElfExcavator.Core PUBLIC src)
 target_link_libraries(ElfExcavator.Core
   PUBLIC
-#    asan
     elfio::elfio
     LLVMDemangle
     spdlog::spdlog

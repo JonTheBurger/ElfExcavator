@@ -17,7 +17,7 @@ struct SettingsForm::Impl {
   QTimer             elf_file_debounce_timer;
   QTimer             objdump_debounce_timer;
 
-  static constexpr std::chrono::milliseconds DEBOUNCE_TIME{ 300 };
+  static constexpr std::chrono::milliseconds DEBOUNCE_TIME{ 1000 };
 
   explicit Impl(SettingsForm& that, SettingsPresenter& present) noexcept
       : self{ that }

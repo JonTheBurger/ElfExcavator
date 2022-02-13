@@ -30,6 +30,9 @@
        <family>Monospace</family>
       </font>
      </property>
+     <property name="text">
+      <string notr="true"/>
+     </property>
     </widget>
    </item>
    <item row="1" column="1" colspan="2">
@@ -57,6 +60,9 @@
       <font>
        <family>Monospace</family>
       </font>
+     </property>
+     <property name="text">
+      <string notr="true"/>
      </property>
      <property name="readOnly">
       <bool>true</bool>
@@ -166,6 +172,9 @@
       <iconset theme="next">
        <normaloff>.</normaloff>.</iconset>
      </property>
+     <property name="shortcut">
+      <string>F3</string>
+     </property>
      <property name="toolButtonStyle">
       <enum>Qt::ToolButtonFollowStyle</enum>
      </property>
@@ -179,6 +188,9 @@
      <property name="icon">
       <iconset theme="previous">
        <normaloff>.</normaloff>.</iconset>
+     </property>
+     <property name="shortcut">
+      <string>Shift+F3</string>
      </property>
      <property name="toolButtonStyle">
       <enum>Qt::ToolButtonFollowStyle</enum>
