@@ -105,7 +105,7 @@ add_library(ElfExcavator.Core
 target_include_directories(ElfExcavator.Core PUBLIC src)
 target_link_libraries(ElfExcavator.Core
   PUBLIC
-    asan
+#    asan
     elfio::elfio
     LLVMDemangle
     spdlog::spdlog
@@ -152,11 +152,11 @@ elseif(CMAKE_C_COMPILER_ID MATCHES Clang)
 else()
   target_link_options(ElfExcavator.Core
     PUBLIC
-      -fsanitize=address
+      $<$<CONFIG:DEBUG>:-fsanitize=address>
   )
   target_compile_options(ElfExcavator.Core
     PUBLIC
-      -fsanitize=address
+      $<$<CONFIG:DEBUG>:-fsanitize=address>
       -fno-omit-frame-pointer
       -Wall
       -Wextra

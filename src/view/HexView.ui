@@ -40,66 +40,6 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <item>
-      <property name="text">
-       <string>uint8_t</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>int8_t</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>uint16_t</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>int16_t</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>uint32_t</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>int32_t</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>uint64_t</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>int64_t</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>float</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>double</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>bytes</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>ascii</string>
-      </property>
-     </item>
     </widget>
    </item>
    <item row="3" column="1" colspan="2">
