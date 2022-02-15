@@ -118,13 +118,27 @@ SCENARIO("Stringification of Byte Arrays", "[ByteConversion]")
 
 SCENARIO("Serialization of Strings", "[ByteConversion]")
 {
-  GIVEN("")
+  GIVEN("A base 10 integer string")
   {
-    WHEN("")
+    QString repr = "16706";
+
+    WHEN("Serialized to a host (little) endian uint16_t byte array")
     {
-      THEN("")
+      QByteArray bytes = toBytes(repr, DataType::U16, false);
+
+      THEN("The bytes are serialized using said endianness")
       {
-        REQUIRE(QByteArray::fromHex("4241") == toBytes("16706", DataType::U16));
+        REQUIRE(QByteArray::fromHex("4241") == bytes);
+      }
+    }
+
+    WHEN("Serialized to a non-host (big) endian uint16_t byte array")
+    {
+      QByteArray bytes = toBytes(repr, DataType::U16, true);
+
+      THEN("The bytes are serialized using said endianness")
+      {
+        REQUIRE(QByteArray::fromHex("4142") == bytes);
       }
     }
   }

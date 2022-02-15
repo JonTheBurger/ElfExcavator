@@ -4,6 +4,8 @@
 #include <QClipboard>
 #include <QKeyEvent>
 #include <QScopedPointer>
+#include <QTimer>
+#include <vector>
 
 #include "HexNumberDelegate.hpp"
 #include "MultiFilterHeaderView.hpp"
@@ -18,12 +20,16 @@ struct MultiFilterTableView::Impl {
   MultiFilterHeaderViewPtr header;  ///< self takes ownership
   MultiFilterProxyModel    model;
   HexNumberDelegate        delegate;
+  QTimer                   input_debounce_timer;
+  std::vector<QString>     input_debounce_cache;
 
   explicit Impl(MultiFilterTableView& that) noexcept
       : self{ that }
       , header{ nullptr }
       , model{}
       , delegate{}
+      , input_debounce_timer{}
+      , input_debounce_cache{}
   {
   }
 };
@@ -35,6 +41,7 @@ MultiFilterTableView::MultiFilterTableView(QWidget* parent)
   QTableView::setModel(&_self->model);  // [View does not take ownership of model unless it is the model's parent](https://doc.qt.io/qt-5/qabstractitemview.html#setModel)
   setItemDelegate(&_self->delegate);    // [View does not take ownership of delegate](https://doc.qt.io/qt-5/qabstractitemview.html#setItemDelegate)
   setSortingEnabled(true);
+  _self->input_debounce_timer.setSingleShot(true);
 }
 
 MultiFilterTableView::~MultiFilterTableView() = default;
@@ -64,10 +71,36 @@ void MultiFilterTableView::setModel(QAbstractItemModel* model)
 
   setHorizontalHeader(_self->header.get());
   _self->header->setVisible(true);
+
+  _self->input_debounce_cache.clear();
+  _self->input_debounce_cache.resize(static_cast<uint8_t>(model->columnCount()));
+
   connect(_self->header.get(),
           &MultiFilterHeaderView::filterTextChanged,
-          &_self->model,
-          &MultiFilterProxyModel::setColumnFilter);
+          [this](int column, const QString& text) {
+            const auto col = static_cast<size_t>(column);
+            if (col < _self->input_debounce_cache.size())
+            {
+              _self->input_debounce_cache[col] = text;
+              _self->input_debounce_timer.start(300);
+            }
+          });
+
+  connect(&_self->input_debounce_timer,
+          &QTimer::timeout,
+          [this]() {
+            int column = 0;
+            for (QString& input : _self->input_debounce_cache)
+            {
+              if (!input.isEmpty())
+              {
+                _self->model.setColumnFilter(column, input);
+                input.clear();
+              }
+              ++column;
+            }
+          });
+
   sortByColumn(0, Qt::AscendingOrder);
 }
 

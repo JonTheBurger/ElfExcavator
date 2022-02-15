@@ -48,10 +48,18 @@ static void disassembleToAsync(const QString& objdump, const QString& executable
 struct MainWindow::Impl {
   Q_DISABLE_COPY(Impl)
 
-  MainWindow&        self;
-  Ui::MainWindow     ui;
-  MainPresenter&     presenter;
-  ads::CDockManager* dock;
+  MainWindow&           self;
+  Ui::MainWindow        ui;
+  MainPresenter&        presenter;
+  ads::CDockManager*    dock;
+  SettingsForm*         settings_form;
+  QTextBrowser*         log_output_form;
+  MultiFilterTableView* section_headers_form;
+  MultiFilterTableView* symbol_table_form;
+  PieChartForm*         section_headers_chart_form;
+  PieChartForm*         symbol_table_chart_form;
+  HexView*              section_contents_form;
+  QTextBrowser*         disassembly_form;
 
   explicit Impl(MainWindow& that, MainPresenter& present) noexcept
       : self{ that }
@@ -66,12 +74,13 @@ struct MainWindow::Impl {
   }
 
   /// Takes ownership of widget
-  void addDock(const QString& name, QWidget* widget, ads::DockWidgetArea location = ads::TopDockWidgetArea)
+  ads::CDockWidget* addDock(const QString& name, QWidget* widget, ads::DockWidgetArea location = ads::TopDockWidgetArea)
   {
     auto* dock_widget = new ads::CDockWidget(name);
     dock_widget->setWidget(widget);
     dock->addDockWidget(location, dock_widget);
     ui.menu_view->addAction(dock_widget->toggleViewAction());
+    return dock_widget;
   }
 
   /// Takes ownership of widget
@@ -85,54 +94,50 @@ struct MainWindow::Impl {
 
   void initSettingsDock()
   {
-    auto* widget = new SettingsForm(presenter.settingsPresenter(), &self);
-    addDock(tr("Settings"), widget, ads::BottomDockWidgetArea);
+    settings_form = new SettingsForm(presenter.settingsPresenter(), &self);
   }
 
   void initLogOutputDock()
   {
-    auto* widget = new QTextBrowser();
-    widget->setFontFamily("Monospace");
-    new LogHighlighter(widget->document());
-    auto widget_log_sink = std::make_shared<spdlog::sinks::qt_sink_mt>(widget, "append");
+    log_output_form = new QTextBrowser();
+    log_output_form->setFontFamily("Monospace");
+    new LogHighlighter(log_output_form->document());
+    auto widget_log_sink = std::make_shared<spdlog::sinks::qt_sink_mt>(log_output_form, "append");
     spdlog::get("")->sinks().push_back(std::move(widget_log_sink));
-    addDockTab(tr("Log Output"), widget, ads::BottomDockWidgetArea);
   }
 
   MultiFilterTableView& initSectionHeaderDock()
   {
-    auto* widget = new MultiFilterTableView(&self);
+    section_headers_form = new MultiFilterTableView(&self);
     // Using QAbstractItemView::SelectionBehavior::SelectRows forces the row of QModelIndex in the
     // QAbstractItemView::selectionChanged signal to be indexable by SectionHeaderItemModel::Columns.
-    widget->setModel(&presenter.sectionHeaderDisplayModel());
-    widget->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
-    addDock(tr("Section Headers"), widget, ads::CenterDockWidgetArea);
-    return *widget;
+    section_headers_form->setModel(&presenter.sectionHeaderDisplayModel());
+    section_headers_form->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
+    return *section_headers_form;
   }
 
   MultiFilterTableView& initSymbolTableDock()
   {
-    auto* widget = new MultiFilterTableView(&self);
-    widget->setModel(&presenter.symbolTableDisplayModel());
-    widget->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
-    addDockTab(tr("Symbol Table"), widget, ads::CenterDockWidgetArea);
-    return *widget;
+    symbol_table_form = new MultiFilterTableView(&self);
+    symbol_table_form->setModel(&presenter.symbolTableDisplayModel());
+    symbol_table_form->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
+    return *symbol_table_form;
   }
 
   void initSectionHeaderChartDock(MultiFilterTableView& table)
   {
-    auto* widget = new PieChartForm(presenter.sectionHeaderCheckedModel(),
-                                    SectionHeaderItemModel::NAME,
-                                    SectionHeaderItemModel::SIZE,
-                                    &self);
-    connect(table.selectionModel(), &QItemSelectionModel::selectionChanged, [widget](const QItemSelection& selected, const QItemSelection&) {
+    section_headers_chart_form = new PieChartForm(presenter.sectionHeaderCheckedModel(),
+                                                  SectionHeaderItemModel::NAME,
+                                                  SectionHeaderItemModel::SIZE,
+                                                  &self);
+    connect(table.selectionModel(), &QItemSelectionModel::selectionChanged, [this](const QItemSelection& selected, const QItemSelection&) {
       if (!selected.indexes().empty())
       {
         auto section_name = selected.indexes()[SectionHeaderItemModel::NAME].data().toString();
-        widget->explodeSlice(section_name);
+        section_headers_chart_form->explodeSlice(section_name);
       }
     });
-    connect(widget, &PieChartForm::sliceSelected, [this, &table](const QString& label) {
+    connect(section_headers_chart_form, &PieChartForm::sliceSelected, [this, &table](const QString& label) {
       // FIXME: This index juggling should be done through main presenter
       auto idx = presenter.sectionHeaderItemModel().indexOfSection(label);
       idx      = presenter.sectionHeaderDisplayModel().mapFromSource(idx);
@@ -140,23 +145,22 @@ struct MainWindow::Impl {
       table.selectRow(idx.row());
       table.scrollTo(idx);
     });
-    addDock(tr("Section Headers"), widget, ads::TopDockWidgetArea);
   }
 
   void initSymbolTableChartDock(MultiFilterTableView& table)
   {
-    auto* widget = new PieChartForm(presenter.symbolTableCheckedModel(),
-                                    SymbolTableItemModel::DEMANGLED_NAME,
-                                    SymbolTableItemModel::SIZE,
-                                    &self);
-    connect(table.selectionModel(), &QItemSelectionModel::selectionChanged, [widget](const QItemSelection& selected, const QItemSelection&) {
+    symbol_table_chart_form = new PieChartForm(presenter.symbolTableCheckedModel(),
+                                               SymbolTableItemModel::DEMANGLED_NAME,
+                                               SymbolTableItemModel::SIZE,
+                                               &self);
+    connect(table.selectionModel(), &QItemSelectionModel::selectionChanged, [this](const QItemSelection& selected, const QItemSelection&) {
       if (!selected.indexes().empty())
       {
         auto section_name = selected.indexes()[SymbolTableItemModel::DEMANGLED_NAME].data().toString();
-        widget->explodeSlice(section_name);
+        symbol_table_chart_form->explodeSlice(section_name);
       }
     });
-    connect(widget, &PieChartForm::sliceSelected, [this, &table](const QString& label) {
+    connect(symbol_table_chart_form, &PieChartForm::sliceSelected, [this, &table](const QString& label) {
       // FIXME: This index juggling should be done through main presenter
       auto idx = presenter.symbolTableItemModel().indexOfSymbol(label);
       idx      = presenter.symbolTableDisplayModel().mapFromSource(idx);
@@ -164,29 +168,26 @@ struct MainWindow::Impl {
       table.selectRow(idx.row());
       table.scrollTo(idx);
     });
-    addDockTab(tr("Symbol Table"), widget, ads::TopDockWidgetArea);
   }
 
   void initSectionHeaderHexDock(QItemSelectionModel* selection_model)
   {
-    auto* widget = new HexView(&self);
-    addDock(tr("Section Contents"), widget, ads::RightDockWidgetArea);
-    connect(selection_model, &QItemSelectionModel::selectionChanged, [widget](const QItemSelection& selected, const QItemSelection&) {
+    section_contents_form = new HexView(&self);
+    connect(selection_model, &QItemSelectionModel::selectionChanged, [this](const QItemSelection& selected, const QItemSelection&) {
       if (!selected.indexes().empty())
       {
         auto contents = selected.indexes()[0].data(SectionHeaderItemModel::Role::SECTION_CONTENTS).toByteArray();
-        widget->setSource(contents);
+        section_contents_form->setSource(contents);
       }
     });
   }
 
   void initSymbolTableDisassemblyDock(QItemSelectionModel* selection_model)
   {
-    auto* widget = new QTextBrowser(&self);
-    widget->setFontFamily("Monospace");
-    new CxxDisassemblyHighlighter(widget->document());
-    addDockTab(tr("Disassembly"), widget, ads::RightDockWidgetArea);
-    connect(selection_model, &QItemSelectionModel::selectionChanged, [this, widget](const QItemSelection& selected, const QItemSelection&) {
+    disassembly_form = new QTextBrowser(&self);
+    disassembly_form->setFontFamily("Monospace");
+    new CxxDisassemblyHighlighter(disassembly_form->document());
+    connect(selection_model, &QItemSelectionModel::selectionChanged, [this](const QItemSelection& selected, const QItemSelection&) {
       if (!selected.indexes().empty())
       {
         auto section = selected.indexes()[SymbolTableItemModel::Columns::SECTION].data().toString();
@@ -195,7 +196,7 @@ struct MainWindow::Impl {
         disassembleToAsync(
           presenter.settingsPresenter().objdumpPath(),
           presenter.settingsPresenter().elfFile(),
-          widget,
+          disassembly_form,
           section,
           address,
           size);
@@ -219,6 +220,20 @@ MainWindow::MainWindow(MainPresenter& present, QWidget* parent)
 
   _self->initSectionHeaderChartDock(section_header_table);
   _self->initSymbolTableChartDock(symbol_table);
+
+  auto* top_dock = _self->addDock(tr("Section Headers"), _self->section_headers_chart_form, ads::TopDockWidgetArea);
+  _self->addDockTab(tr("Symbol Table"), _self->symbol_table_chart_form, ads::TopDockWidgetArea);
+  top_dock->raise();
+
+  auto* right_dock = _self->addDock(tr("Section Contents"), _self->section_contents_form, ads::RightDockWidgetArea);
+  _self->addDockTab(tr("Disassembly"), _self->disassembly_form, ads::RightDockWidgetArea);
+  right_dock->raise();
+
+  auto* bottom_dock = _self->addDock(tr("Section Headers"), _self->section_headers_form, ads::BottomDockWidgetArea);
+  _self->addDockTab(tr("Symbol Table"), _self->symbol_table_form, ads::BottomDockWidgetArea);
+  _self->addDockTab(tr("Settings"), _self->settings_form, ads::BottomDockWidgetArea);
+  _self->addDockTab(tr("Log Output"), _self->log_output_form, ads::BottomDockWidgetArea);
+  bottom_dock->raise();
 }
 
 MainWindow::~MainWindow() = default;

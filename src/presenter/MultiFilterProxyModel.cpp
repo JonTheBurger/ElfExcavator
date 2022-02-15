@@ -47,8 +47,13 @@ bool MultiFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex& s
 
   for (auto col = 0; (accepted) && (col < sourceModel()->columnCount()); ++col)
   {
+    const auto idx = static_cast<size_t>(col);
+    if (_self->filters[idx].pattern().isEmpty())
+    {
+      continue;
+    }
+
     const QVariant data = sourceModel()->data(sourceModel()->index(sourceRow, col, sourceParent), filterRole());
-    const auto     idx  = static_cast<size_t>(col);
 
     if (data.userType() == QMetaType::QString)
     {
@@ -76,5 +81,10 @@ void MultiFilterProxyModel::setColumnFilter(int column, const QString& text)
   {
     _self->filters[idx].setPattern(text);
     invalidateFilter();
+
+    if (text.isEmpty())
+    {
+      emit filterValidityChanged(static_cast<uint8_t>(idx), true);
+    }
   }
 }

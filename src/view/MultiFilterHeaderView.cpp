@@ -40,7 +40,11 @@ struct MultiFilterHeaderView::Impl {
     connect(model, &MultiFilterProxyModel::filterValidityChanged, [this](int column, bool is_valid) {
       auto idx = static_cast<size_t>(column);
       if (!(line_edits.size() > idx)) { return; }
-      line_edits[idx]->setStyleSheet(is_valid ? "" : INVALID_FILTER_STYLESHEET);
+      bool was_valid = line_edits[idx]->styleSheet().isEmpty();
+      if (is_valid != was_valid)
+      {
+        line_edits[idx]->setStyleSheet(is_valid ? "" : INVALID_FILTER_STYLESHEET);
+      }
     });
 
     self.setSectionsClickable(true);
