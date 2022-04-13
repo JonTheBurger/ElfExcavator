@@ -49,7 +49,7 @@ QModelIndex SectionHeaderItemModel::indexOfSection(QStringView name)
     return {};
   }
 
-  auto row = std::distance(sections.begin(), it);
+  int row = std::distance(sections.begin(), it) & INT_MAX;
   return index(row, 0);
 }
 
@@ -99,7 +99,7 @@ int SectionHeaderItemModel::columnCount(const QModelIndex& parent) const
 
 QVariant SectionHeaderItemModel::data(const QModelIndex& index, int role) const
 {
-  if (!index.isValid() || (index.row() >= _self->elf_file.sections().size())) { return {}; }
+  if (!index.isValid() || (static_cast<size_t>(index.row()) >= _self->elf_file.sections().size())) { return {}; }
 
   const auto idx = static_cast<unsigned>(index.row());
   if (role == Qt::DisplayRole)
@@ -168,7 +168,7 @@ QVariant SectionHeaderItemModel::data(const QModelIndex& index, int role) const
   {
     const Section&   section  = _self->elf_file.sections()[idx];
     std::string_view contents = _self->elf_file.contentsOf(section);
-    return QByteArray(contents.data(), contents.size());
+    return QByteArray(contents.data(), contents.size() & INT_MAX);
   }
   return QVariant();
 }

@@ -77,7 +77,7 @@ bool MultiFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex& s
 void MultiFilterProxyModel::setColumnFilter(int column, const QString& text)
 {
   const auto idx = static_cast<size_t>(column);
-  if (idx < _self->filters.size())
+  if ((idx < _self->filters.size()) && (_self->filters[idx].pattern() != text))
   {
     _self->filters[idx].setPattern(text);
     invalidateFilter();

@@ -43,7 +43,7 @@ QModelIndex SymbolTableItemModel::indexOfSymbol(QStringView demangled_name)
     return {};
   }
 
-  auto row = std::distance(symbols.begin(), it);
+  int row = std::distance(symbols.begin(), it) & INT_MAX;
   return index(row, 0);
 }
 
@@ -97,7 +97,7 @@ int SymbolTableItemModel::columnCount(const QModelIndex& parent) const
 
 QVariant SymbolTableItemModel::data(const QModelIndex& index, int role) const
 {
-  if (!index.isValid() || (index.row() >= _self->elf_file.symbols().size())) { return {}; }
+  if (!index.isValid() || (static_cast<size_t>(index.row()) >= _self->elf_file.symbols().size())) { return {}; }
 
   if (role == Qt::DisplayRole)
   {

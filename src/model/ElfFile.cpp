@@ -202,6 +202,8 @@ std::string_view ElfFile::contentsOf(const Section& section) const
   const auto            idx          = (section.index < sections.size()) ? (section.index) : (0u);
   const ELFIO::section* section_info = _self->elf_file.sections[idx];
 
+  if (!section_info) { return {}; }
+
   // If any sections failed to load, position will not be equal to index (though indices will still be monotonic).
   if (section_info->get_index() != idx)
   {

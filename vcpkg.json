@@ -1,0 +1,43 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+  "builtin-baseline": "af2287382b1991dbdcb7e5112d236f3323b9dd7a",
+  "name": "elfexcavator",
+  "version-semver": "0.2.0",
+  "dependencies": [
+    {
+      "name": "elfio",
+      "version>=": "3.9"
+    },
+    {
+      "name": "kf5itemmodels",
+      "version>=": "5.89.0"
+    },
+    {
+      "name": "llvm",
+      "features": [ "utils" ]
+    },
+    {
+      "name": "qt5",
+      "version>=": "5.15.3",
+      "features": [ "charts" ]
+    },
+    {
+      "name": "qt-advanced-docking-system",
+      "version>=": "3.8.0"
+    },
+    {
+      "name": "range-v3"
+    },
+    {
+      "name": "spdlog",
+      "version>=": "1.9.0#1"
+    }
+  ],
+  "features": {
+    "dev": {
+      "description": "Development dependencies",
+      "dependencies": [ "catch2" ]
+    }
+  },
+  "default-features": []
+}

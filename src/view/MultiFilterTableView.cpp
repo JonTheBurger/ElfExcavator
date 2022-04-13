@@ -92,11 +92,8 @@ void MultiFilterTableView::setModel(QAbstractItemModel* model)
             int column = 0;
             for (QString& input : _self->input_debounce_cache)
             {
-              if (!input.isEmpty())
-              {
-                _self->model.setColumnFilter(column, input);
-                input.clear();
-              }
+              _self->model.setColumnFilter(column, input);
+              input.clear();
               ++column;
             }
           });

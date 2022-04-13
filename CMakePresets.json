@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 19,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "dev",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "displayName": "Development Mode",
+      "description": "Enables Dev Tooling & Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ElfExcavator_DEVELOPER_MODE": "ON"
+      }
+    },
+    {
+      "name": "vcpkg",
+      "inherits": "dev",
+      "displayName": "Development Mode (vcpkg)",
+      "description": "Use vcpkg to satisfy dependencies",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/tools/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_MANIFEST_FEATURES": "dev"
+      }
+    },
+    {
+      "name": "install",
+      "inherits": "dev",
+      "displayName": "Install Mode",
+      "description": "Install ${sourceDirName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "/usr/local",
+        "ElfExcavator_DEVELOPER_MODE": "OFF"
+      }
+    }
+  ]
+}

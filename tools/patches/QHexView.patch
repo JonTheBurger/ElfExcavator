@@ -1,0 +1,13 @@
+diff --git a/document/qhexdocument.cpp b/document/qhexdocument.cpp
+index 056df4f..6c5b2cc 100644
+--- a/document/qhexdocument.cpp
++++ b/document/qhexdocument.cpp
+@@ -172,7 +172,7 @@ bool QHexDocument::saveTo(QIODevice *device)
+ 
+ qint64 QHexDocument::searchForward(const QByteArray &ba)
+ {
+-    qint64 startPos = m_cursor->position().offset();
++    qint64 startPos = m_cursor->position().offset() + 1;
+     qint64 findPos = m_buffer->indexOf(ba, startPos);
+     if (findPos > -1) {
+         m_cursor->clearSelection();

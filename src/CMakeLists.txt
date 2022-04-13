@@ -1,0 +1,38 @@
+# Handle Folders and File Sets for IDEs
+target_sources(elfexcavator.core
+  PRIVATE
+    model/ByteConversion.cpp
+    model/ByteConversion.hpp
+    model/ElfFile.cpp
+    model/ElfFile.hpp
+    model/TextFilter.cpp
+    model/TextFilter.hpp
+    presenter/MainPresenter.cpp
+    presenter/MainPresenter.hpp
+    presenter/MultiFilterProxyModel.cpp
+    presenter/MultiFilterProxyModel.hpp
+    presenter/SectionHeaderItemModel.cpp
+    presenter/SectionHeaderItemModel.hpp
+    presenter/SettingsPresenter.cpp
+    presenter/SettingsPresenter.hpp
+    presenter/SymbolTableItemModel.cpp
+    presenter/SymbolTableItemModel.hpp
+    view/CxxDisassemblyHighlighter.cpp
+    view/CxxDisassemblyHighlighter.hpp
+    view/HexNumberDelegate.cpp
+    view/HexNumberDelegate.hpp
+    view/HexView.cpp
+    view/HexView.hpp
+    view/LogHighlighter.cpp
+    view/LogHighlighter.hpp
+    view/MainWindow.cpp
+    view/MainWindow.hpp
+    view/MultiFilterHeaderView.cpp
+    view/MultiFilterHeaderView.hpp
+    view/MultiFilterTableView.cpp
+    view/MultiFilterTableView.hpp
+    view/PieChartForm.cpp
+    view/PieChartForm.hpp
+    view/SettingsForm.cpp
+    view/SettingsForm.hpp
+)

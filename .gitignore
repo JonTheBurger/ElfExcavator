@@ -7,6 +7,7 @@ out/
 *.swp
 *.tmp
 *.user
+.cache/
 .idea/
 .vs/
 CMakeLists.txt.user
@@ -14,4 +15,3 @@ CMakeUserPresets.json
 
 # Python
 .venv/
-
