@@ -42,15 +42,15 @@
   "buildPresets": [
     {
       "name": "dev",
-      "configurePreset": "${presetName}"
+      "configurePreset": "dev"
     },
     {
       "name": "vcpkg",
-      "configurePreset": "${presetName}"
+      "configurePreset": "vcpkg"
     },
     {
       "name": "install",
-      "configurePreset": "${presetName}"
+      "configurePreset": "install"
     }
   ]
 }
