@@ -4,6 +4,7 @@ Build/
 out/
 
 # IDE/Editor files
+*.autosave
 *.swp
 *.tmp
 *.user

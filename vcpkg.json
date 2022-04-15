@@ -1,29 +1,12 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
-  "builtin-baseline": "af2287382b1991dbdcb7e5112d236f3323b9dd7a",
+  "builtin-baseline": "b86c0c35b88e2bf3557ff49dc831689c2f085090",
   "name": "elfexcavator",
   "version-semver": "0.2.0",
   "dependencies": [
     {
       "name": "elfio",
       "version>=": "3.9"
-    },
-    {
-      "name": "kf5itemmodels",
-      "version>=": "5.89.0"
-    },
-    {
-      "name": "llvm",
-      "features": [ "utils" ]
-    },
-    {
-      "name": "qt5",
-      "version>=": "5.15.3",
-      "features": [ "charts" ]
-    },
-    {
-      "name": "qt-advanced-docking-system",
-      "version>=": "3.8.0"
     },
     {
       "name": "range-v3"
@@ -37,6 +20,28 @@
     "dev": {
       "description": "Development dependencies",
       "dependencies": [ "catch2" ]
+    },
+    "big": {
+      "description": "Build large dependencies",
+      "dependencies": [
+        {
+          "name": "qt5",
+          "version>=": "5.12.8",
+          "features": [ "charts" ]
+        },
+        {
+          "name": "qt-advanced-docking-system",
+          "version>=": "3.8.0"
+        },
+        {
+          "name": "kf5itemmodels",
+          "version>=": "5.89.0"
+        },
+        {
+          "name": "llvm",
+          "features": [ "utils" ]
+        }
+      ]
     }
   },
   "default-features": []

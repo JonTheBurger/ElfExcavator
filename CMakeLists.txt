@@ -9,9 +9,9 @@ project(
 )
 
 # Public Options
-option(${PROJECT_NAME}_BUILD_TESTING "Build tests for ${PROJECT_NAME}" ${${PROJECT_NAME}_DEVELOPER_MODE})
-option(${PROJECT_NAME}_DEVELOPER_MODE "Search for and use developer tools" OFF)
 option(${PROJECT_NAME}_PACKAGER_MODE "Turn on to disable all dependency auto-resolution" OFF)
+option(${PROJECT_NAME}_DEVELOPER_MODE "Search for and use developer tools" OFF)
+option(${PROJECT_NAME}_BUILD_TESTING "Build tests for ${PROJECT_NAME}" ${${PROJECT_NAME}_DEVELOPER_MODE})
 
 # Setup Utility Modules
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/tools/cmake/modules)
@@ -28,7 +28,7 @@ find_package(Qt5 5.9 CONFIG REQUIRED
 )
 find_package(Catch2)
 find_package(elfio)
-find_package(kf5itemmodels)
+find_package(KF5ItemModels)
 find_package(LLVM)
 find_package(qhexview)
 find_package(qtadvanceddocking)
@@ -45,17 +45,17 @@ target_include_directories(elfexcavator.core
 )
 target_link_libraries(elfexcavator.core
   PUBLIC
-    elfio::elfio
     LLVMDemangle
-    spdlog::spdlog
+    elfio::elfio
     range-v3::range-v3
-    qtadvanceddocking
-    KF5::ItemModels
-    Qt5::Core
-    Qt5::Charts
-    Qt5::Gui
-    Qt5::Widgets
+    spdlog::spdlog
     qhexview-lib
+    ads::qtadvanceddocking
+    KF5::ItemModels
+    Qt5::Charts
+    Qt5::Widgets
+    Qt5::Gui
+    Qt5::Core
 )
 target_compile_options(elfexcavator.core
   PUBLIC
@@ -65,17 +65,13 @@ target_compile_options(elfexcavator.core
 target_link_options(elfexcavator.core
   PUBLIC
     ${${PROJECT_NAME}_SANITIZERS_LINK}
-    $<$<CONFIG:DEBUG>:-fsanitize=address,leak,undefined>
-)
-target_compile_options(elfexcavator.core
-  PUBLIC
-    $<$<CONFIG:DEBUG>:-fsanitize=address,leak,undefined -fno-omit-frame-pointer -fno-common>
 )
 
 # Add Main Executable
 add_executable(elfexcavator)
 target_sources(elfexcavator PRIVATE src/main.cpp)
 target_link_libraries(elfexcavator PRIVATE elfexcavator.core)
+install(TARGETS elfexcavator)
 
 # Add Tests
 if (${PROJECT_NAME}_BUILD_TESTING)
