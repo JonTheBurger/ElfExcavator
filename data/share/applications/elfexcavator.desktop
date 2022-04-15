@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Name=Elf Excavator
+Comment=Graphical ELF File Inspector
+Exec=elfexcavator %f
+TryExec=elfexcavator
+Icon=elfexcavator
+Terminal=false
+Type=Application
+Categories=Development;
+MimeType=application/x-elf;application-xsharedlib;
+Keywords=binutils;elf;embedded;objdump;viewer;

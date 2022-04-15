@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>share/icons/hicolor/512x512/apps/elfexcavator.png</file>
+    </qresource>
+</RCC>

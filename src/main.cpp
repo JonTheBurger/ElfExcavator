@@ -1,7 +1,9 @@
 #include <QApplication>
 #include <QCommandLineParser>
+#include <QDebug>
 #include <QItemSelectionModel>
 #include <QSettings>
+#include <QTranslator>
 #include <spdlog/sinks/qt_sinks.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
@@ -20,19 +22,31 @@ int main(int argc, char* argv[])
   QApplication::setOrganizationName("jontheburger");
   QApplication::setApplicationName("Elf Excavator");
   QApplication::setApplicationVersion("alpha");
+  Q_INIT_RESOURCE(Resources);
+  Q_INIT_RESOURCE(i18n);
+
+  QTranslator translator;
+  if (translator.load(QLocale(), QLatin1String("elfexcavator"), QLatin1String("."), QLatin1String(":/i18n")))
+  {
+    app.installTranslator(&translator);
+  }
 
   QCommandLineParser parser;
-  QCommandLineOption file_opt{
-    "file",
+  parser.addPositionalArgument(
+    QStringLiteral("file"),
     QCoreApplication::tr("ELF file to visualize"),
-    QCoreApplication::tr("ELF File Path")
-  };
-  parser.setApplicationDescription("Visualizes ELF files with an easy to use graphical interface");
+    QStringLiteral(""));
+  parser.setApplicationDescription(
+    QCoreApplication::tr("Visualizes ELF files with an easy to use graphical interface"));
   parser.addHelpOption();
   parser.addVersionOption();
-  parser.addOption(file_opt);
   parser.process(app);
-  QString elf_file_path = parser.isSet(file_opt) ? parser.value(file_opt) : argv[0];
+
+  QString elf_file_path = argv[0];
+  if (!parser.positionalArguments().empty())
+  {
+    elf_file_path = parser.positionalArguments()[0];
+  }
 
   // Models
   ElfFile elf_file;
@@ -53,6 +67,7 @@ int main(int argc, char* argv[])
   if (!elf_file_path.isEmpty())
   {
     settings_presenter.setElfFile(elf_file_path);
+    main_window.setWindowTitle(elf_file_path);
   }
   main_window.show();
 

@@ -27,7 +27,7 @@ void HexNumberDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opt
     textRect.setTop(textRect.top() + margin);
 
     const auto value = index.data().value<qulonglong>();
-    painter->drawText(textRect, " 0x" % QString("%1").arg(value, 0, 16).toUpper());
+    painter->drawText(textRect, QStringLiteral(" 0x") % QStringLiteral("%1").arg(value, 0, 16).toUpper());
   }
   else
   {

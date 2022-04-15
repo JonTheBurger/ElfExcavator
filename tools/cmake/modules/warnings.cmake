@@ -11,7 +11,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL MSVC)
     /w14242 /w14254 /w14263 /w14265 /w14287 /w14296
     /w14311
     /w14545 /w14546 /w14547 /w14549 /w14555
-    /w14619 /w14640 /w14640
+    /w14619 /w14640
     /w14826
     /w14905 /w14906 /w14928
     /we4289
@@ -22,7 +22,6 @@ elseif(CMAKE_C_COMPILER_ID MATCHES Clang)
   )
 else()
   set(${PROJECT_NAME}_WARNINGS
-    $<$<CONFIG:DEBUG>:-fsanitize=address,leak,undefined -fno-omit-frame-pointer -fno-common>
     -Wall
     -Wextra
     -pedantic

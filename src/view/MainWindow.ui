@@ -11,7 +11,17 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Elf Excavator</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../data/Resources.qrc">
+    <normaloff>:/icons/share/icons/hicolor/512x512/apps/elfexcavator.png</normaloff>:/icons/share/icons/hicolor/512x512/apps/elfexcavator.png</iconset>
+  </property>
+  <property name="iconSize">
+   <size>
+    <width>512</width>
+    <height>512</height>
+   </size>
   </property>
   <widget class="QWidget" name="centralwidget"/>
   <widget class="QMenuBar" name="menubar">
@@ -38,6 +48,8 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../data/Resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

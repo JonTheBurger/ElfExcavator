@@ -43,15 +43,12 @@ TODOS
 -----
 I'll be recording what needs doing here until Elf Excavator is out of alpha.
 
-* Add Translation Support
 * Bundle Licenses in Help -> About
 * Code Coverage
 * Create LeakSanitizer suppressions for libfontconfig
-* Create a Desktop Icon
 * Document Design Decisions
 * Extend Unit Test Coverage
 * Github Actions
-* Install a .desktop file
 * Investigate KDAB Dock Widget
 * List Total Allocated Section/Symbol Size
 * Proper LMA Support

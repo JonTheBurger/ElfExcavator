@@ -35,7 +35,7 @@ struct SettingsForm::Impl {
 
     // Show File Browser on objdump_browse_button click
     connect(ui.objdump_browse_button, &QPushButton::clicked, [this]() {
-      ui.objdump_lineedit->setText(QFileDialog::getOpenFileName(&self, tr("objdump executable"), "objdump", tr("All File Types (*)")));
+      ui.objdump_lineedit->setText(QFileDialog::getOpenFileName(&self, tr("objdump executable"), QStringLiteral("objdump"), tr("All File Types (*)")));
     });
 
     // Wait until 100ms after the user has stopped modifying the elf_file_lineedit to register a change

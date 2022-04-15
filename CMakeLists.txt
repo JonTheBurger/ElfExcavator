@@ -24,7 +24,7 @@ include(warnings)
 # Resolve Dependencies
 find_package(Qt5 5.9 CONFIG REQUIRED
   COMPONENTS
-    Core Charts Gui Widgets Qml
+    Core Charts Gui LinguistTools Widgets
 )
 find_package(Catch2 QUIET)
 find_package(elfio QUIET)
@@ -39,6 +39,8 @@ add_subdirectory(external EXCLUDE_FROM_ALL)
 # Add Core Library (for exe and reuse in tests)
 add_library(elfexcavator.core)
 add_subdirectory(src)
+include(translations)
+target_sources(elfexcavator.core PRIVATE data/Resources.qrc ${QM_FILES})
 target_include_directories(elfexcavator.core
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
@@ -66,18 +68,30 @@ target_link_options(elfexcavator.core
   PUBLIC
     ${${PROJECT_NAME}_SANITIZERS_LINK}
 )
+if (BUILD_SHARED_LIBS)
+  install(TARGETS elfexcavator.core)
+endif()
 
 # Add Main Executable
 add_executable(elfexcavator)
 target_sources(elfexcavator PRIVATE src/main.cpp)
 target_link_libraries(elfexcavator PRIVATE elfexcavator.core)
+set_target_properties(elfexcavator PROPERTIES
+    MACOSX_BUNDLE_GUI_IDENTIFIER jontheburger.github.com
+    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+)
 install(TARGETS elfexcavator)
 
 # Add Tests
 if (${PROJECT_NAME}_BUILD_TESTING)
   enable_testing()
-  add_subdirectory(test)
+  add_subdirectory(tests)
 endif()
 
 # Package
+install(
+  DIRECTORY ${PROJECT_SOURCE_DIR}/data/share/
+  DESTINATION share
+)
 include(CPack)

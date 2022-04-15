@@ -36,11 +36,11 @@ static void disassembleToAsync(const QString& objdump, const QString& executable
                      process->deleteLater();
                    });
   process->start(objdump,
-                 { "--start-address",
+                 { QStringLiteral("--start-address"),
                    QString::number(address),
-                   "--stop-address",
+                   QStringLiteral("--stop-address"),
                    QString::number(address + size),
-                   "-CSj",  // Demangle, Display Source, Only for section
+                   QStringLiteral("-CSj"),  // Demangle, Display Source, Only for section
                    section,
                    executable });
 }
@@ -100,7 +100,7 @@ struct MainWindow::Impl {
   void initLogOutputDock()
   {
     log_output_form = new QTextBrowser();
-    log_output_form->setFontFamily("Monospace");
+    log_output_form->setFontFamily(QStringLiteral("Monospace"));
     new LogHighlighter(log_output_form->document());
     auto widget_log_sink = std::make_shared<spdlog::sinks::qt_sink_mt>(log_output_form, "append");
     spdlog::get("")->sinks().push_back(std::move(widget_log_sink));
@@ -185,7 +185,7 @@ struct MainWindow::Impl {
   void initSymbolTableDisassemblyDock(QItemSelectionModel* selection_model)
   {
     disassembly_form = new QTextBrowser(&self);
-    disassembly_form->setFontFamily("Monospace");
+    disassembly_form->setFontFamily(QStringLiteral("Monospace"));
     new CxxDisassemblyHighlighter(disassembly_form->document());
     connect(selection_model, &QItemSelectionModel::selectionChanged, [this](const QItemSelection& selected, const QItemSelection&) {
       if (!selected.indexes().empty())
