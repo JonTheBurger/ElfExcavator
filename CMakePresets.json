@@ -1,8 +1,8 @@
 {
-  "version": 1,
+  "version": 2,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 19,
+    "minor": 20,
     "patch": 0
   },
   "configurePresets": [
@@ -37,6 +37,20 @@
         "CMAKE_INSTALL_PREFIX": "/usr/local",
         "ElfExcavator_DEVELOPER_MODE": "OFF"
       }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "dev",
+      "configurePreset": "${presetName}"
+    },
+    {
+      "name": "vcpkg",
+      "configurePreset": "${presetName}"
+    },
+    {
+      "name": "install",
+      "configurePreset": "${presetName}"
     }
   ]
 }

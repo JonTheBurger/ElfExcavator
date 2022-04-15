@@ -14,6 +14,8 @@ if [ -f "/etc/apt/sources.list" ]; then
     -e libgl1-mesa-dev \
     -e libmesa-dev \
     -e libqt5charts5-dev \
+    -e librange-v3-dev \
+    -e libspdlog-dev \
     -e libx11-dev \
     -e libxcb-glx0-dev \
     -e libxcb-icccm4-dev \
@@ -43,5 +45,5 @@ if [ -f "/etc/apt/sources.list" ]; then
     | xargs sudo apt-get install -y
 else
   echo "Sorry, your platform is currently unsupported."
-  echo "If you install the packages listed in setup.sh it will probably work, but no promises!."
+  echo "If you install the analogous packages listed in setup.sh it will probably work, but no promises!"
 fi

@@ -9,6 +9,10 @@ RUN export DEBIAN_FRONTEND=NONINTERACTIVE && \
     git \
     git-lfs \
     libqt5charts5-dev \
+    librange-v3-dev \
+    libspdlog-dev \
+    libx11-dev \
+    libxkbcommon-dev \
     llvm-dev \
     ninja-build \
     qtbase5-dev \
