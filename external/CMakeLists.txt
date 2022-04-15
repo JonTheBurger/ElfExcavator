@@ -11,7 +11,7 @@ else()
 endif()
 
 # Use common cache folder that can be shared between configurations
-message("FETCHING MISSING DEPENDENCIES...")
+message(STATUS "FETCHING MISSING DEPENDENCIES...")
 include(FetchContent)
 set(FETCH_CACHE "${PROJECT_SOURCE_DIR}/.cache/_deps")
 if (NOT EXISTS ${FETCH_CACHE})
@@ -26,6 +26,7 @@ endif()
 option(${PROJECT_NAME}_FETCH_QHEXVIEW "Fetch dependency QHexView" ${FETCH_DEFAULT})
 mark_as_advanced(${PROJECT_NAME}_FETCH_QHEXVIEW)
 if (${PROJECT_NAME}_FETCH_QHEXVIEW)
+  message(STATUS "Fetching QHexView")
   FetchContent_Declare(
     QHexView
     GIT_REPOSITORY https://github.com/Dax89/QHexView.git
@@ -35,15 +36,16 @@ if (${PROJECT_NAME}_FETCH_QHEXVIEW)
   )
   FetchContent_GetProperties(QHexView)
   if (NOT QHexView_POPULATED)
+    FetchContent_Populate(QHexView)
     find_package(Git)
     if (GIT_FOUND)
       execute_process(
         COMMAND ${GIT_EXECUTABLE} apply ${CMAKE_CURRENT_LIST_DIR}/QHexView.patch
-        WORKING_DIRECTORY "${QHexView_SOURCE_DIR}"
+        WORKING_DIRECTORY "${qhexview_SOURCE_DIR}"
+        ERROR_QUIET
       )
     endif()
-    FetchContent_Populate(QHexView)
-    add_subdirectory(${QHexView_SOURCE_DIR} ${QHexView_BINARY_DIR})
+    add_subdirectory(${qhexview_SOURCE_DIR} ${qhexview_BINARY_DIR})
   endif()
 endif()
 
@@ -54,15 +56,17 @@ endif()
 option(${PROJECT_NAME}_FETCH_CATCH2 "Fetch dependency Catch2" ${FETCH_DEFAULT})
 mark_as_advanced(${PROJECT_NAME}_FETCH_CATCH2)
 if (${PROJECT_NAME}_FETCH_CATCH2)
-  set(CATCH_BUILD_STATIC_LIBRARY ON)
-  set(CATCH_BUILD_TESTING OFF)
-  set(CATCH_BUILD_WERROR OFF)
-  set(CATCH_INSTALL_DOCS OFF)
-  set(CATCH_INSTALL_HELPERS OFF)
+  message(STATUS "Fetching Catch2")
+  set(CATCH_BUILD_STATIC_LIBRARY ON CACHE BOOL "" FORCE)
+  set(CATCH_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+  set(CATCH_BUILD_WERROR OFF CACHE BOOL "" FORCE)
+  set(CATCH_INSTALL_DOCS OFF CACHE BOOL "" FORCE)
+  set(CATCH_INSTALL_HELPERS OFF CACHE BOOL "" FORCE)
   FetchContent_Declare(
     Catch2
     GIT_REPOSITORY https://github.com/catchorg/Catch2.git
     GIT_TAG v2.13.7
+    GIT_SHALLOW TRUE
     SOURCE_DIR ${FETCH_CACHE}/Catch2
   )
   FetchContent_MakeAvailable(Catch2)
@@ -75,11 +79,13 @@ endif()
 option(${PROJECT_NAME}_FETCH_ELFIO "Fetch dependency ELFIO" ${FETCH_DEFAULT})
 mark_as_advanced(${PROJECT_NAME}_FETCH_ELFIO)
 if (${PROJECT_NAME}_FETCH_ELFIO)
+  message(STATUS "Fetching ELFIO")
   set(ELFIO_BUILD_EXAMPLES ON CACHE BOOL "" FORCE)
   FetchContent_Declare(
     ELFIO
     GIT_REPOSITORY https://github.com/serge1/ELFIO.git
     GIT_TAG Release_3.9
+    GIT_SHALLOW TRUE
     SOURCE_DIR ${FETCH_CACHE}/ELFIO
   )
   FetchContent_MakeAvailable(ELFIO)
@@ -92,11 +98,13 @@ endif()
 option(${PROJECT_NAME}_FETCH_KITEMMODELS "Fetch dependency kitemmodels" ${FETCH_DEFAULT})
 mark_as_advanced(${PROJECT_NAME}_FETCH_KITEMMODELS)
 if (${PROJECT_NAME}_FETCH_KITEMMODELS)
+  message(STATUS "Fetching KItemModels")
   set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
   FetchContent_Declare(
     kitemmodels
     GIT_REPOSITORY https://github.com/KDE/kitemmodels.git
     GIT_TAG v5.89.0
+    GIT_SHALLOW TRUE
     SOURCE_DIR ${FETCH_CACHE}/kitemmodels
   )
   FetchContent_MakeAvailable(kitemmodels)
@@ -110,6 +118,7 @@ endif()
 option(${PROJECT_NAME}_USE_BUNDLED_LLVM "Use bundled LLVMDemangle" ${FETCH_DEFAULT})
 mark_as_advanced(${PROJECT_NAME}_USE_BUNDLED_LLVM)
 if (${PROJECT_NAME}_USE_BUNDLED_LLVM)
+  message(STATUS "Using Bundled LLVM")
   add_subdirectory(llvm)
 endif()
 
@@ -120,15 +129,17 @@ endif()
 option(${PROJECT_NAME}_FETCH_QT_ADVANCED_DOCKING_SYSTEM "Fetch dependency Qt-Advanced-Docking-System" ${FETCH_DEFAULT})
 mark_as_advanced(${PROJECT_NAME}_FETCH_QT_ADVANCED_DOCKING_SYSTEM)
 if (${PROJECT_NAME}_FETCH_QT_ADVANCED_DOCKING_SYSTEM)
+  message(STATUS "Fetching Qt-Advanced-Docking-System")
   set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
   if (NOT BUILD_SHARED_LIBS)
     set(BUILD_STATIC ON CACHE BOOL "" FORCE)
-    find_package(X11)
+    find_package(X11 QUIET)
   endif()
   FetchContent_Declare(
     Qt-Advanced-Docking-System
     GIT_REPOSITORY https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System.git
     GIT_TAG 3.8.0
+    GIT_SHALLOW TRUE
     SOURCE_DIR ${FETCH_CACHE}/Qt-Advanced-Docking-System
   )
   FetchContent_MakeAvailable(Qt-Advanced-Docking-System)
@@ -142,6 +153,8 @@ if (${PROJECT_NAME}_FETCH_QT_ADVANCED_DOCKING_SYSTEM)
     # This might not be needed for Wayland, but I have not tested,
     # which is why find_package(X11) is not REQUIRED
     target_link_libraries(qtadvanceddocking INTERFACE X11::xcb_xkb)
+  elseif()
+    message(WARNING "Could not find X11 xcb xkb! You might be missing 'libxkbcommon-dev' or a Wayland dependency!")
   endif()
   add_library(ads::qtadvanceddocking ALIAS qtadvanceddocking)
 endif()
@@ -153,10 +166,12 @@ endif()
 option(${PROJECT_NAME}_FETCH_RANGE_V3 "Fetch dependency range-v3" ${FETCH_DEFAULT})
 mark_as_advanced(${PROJECT_NAME}_FETCH_RANGE_V3)
 if (${PROJECT_NAME}_FETCH_RANGE_V3)
+  message(STATUS "Fetching range-v3")
   FetchContent_Declare(
     range-v3
     GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
     GIT_TAG 0.11.0
+    GIT_SHALLOW TRUE
     SOURCE_DIR ${FETCH_CACHE}/range-v3
   )
   FetchContent_MakeAvailable(range-v3)
@@ -169,13 +184,15 @@ endif()
 option(${PROJECT_NAME}_FETCH_SPDLOG "Fetch dependency spdlog" ${FETCH_DEFAULT})
 mark_as_advanced(${PROJECT_NAME}_FETCH_SPDLOG)
 if (${PROJECT_NAME}_FETCH_SPDLOG)
+  message(STATUS "Fetching spdlog")
   FetchContent_Declare(
     spdlog
     GIT_REPOSITORY https://github.com/gabime/spdlog.git
     GIT_TAG v1.9.2
+    GIT_SHALLOW TRUE
     SOURCE_DIR ${FETCH_CACHE}/spdlog
   )
   FetchContent_MakeAvailable(spdlog)
 endif()
 
-message("FETCHING MISSING DEPENDENCIES: DONE")
+message(STATUS "FETCHING MISSING DEPENDENCIES: DONE")

@@ -26,14 +26,14 @@ find_package(Qt5 5.9 CONFIG REQUIRED
   COMPONENTS
     Core Charts Gui Widgets Qml
 )
-find_package(Catch2)
-find_package(elfio)
-find_package(KF5ItemModels)
-find_package(LLVM)
-find_package(qhexview)
-find_package(qtadvanceddocking)
-find_package(range-v3)
-find_package(spdlog 1.9.2)
+find_package(Catch2 QUIET)
+find_package(elfio QUIET)
+find_package(KF5ItemModels QUIET)
+find_package(LLVM QUIET)
+find_package(qhexview QUIET)
+find_package(qtadvanceddocking QUIET)
+find_package(range-v3 QUIET)
+find_package(spdlog 1.9.2 QUIET)
 add_subdirectory(external EXCLUDE_FROM_ALL)
 
 # Add Core Library (for exe and reuse in tests)
@@ -79,6 +79,5 @@ if (${PROJECT_NAME}_BUILD_TESTING)
   add_subdirectory(test)
 endif()
 
-# Setup Install Rules
-include(installation)
-include(deb)
+# Package
+include(CPack)
