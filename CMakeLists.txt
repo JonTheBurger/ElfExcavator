@@ -15,6 +15,7 @@ option(${PROJECT_NAME}_BUILD_TESTING "Build tests for ${PROJECT_NAME}" ${${PROJE
 
 # Setup Utility Modules
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/tools/cmake/modules)
+include(GNUInstallDirs)
 include(ccache)
 include(rpath)
 include(sanitizer)
@@ -26,6 +27,7 @@ find_package(Qt5 5.9 CONFIG REQUIRED
   COMPONENTS
     Core Charts Gui LinguistTools Widgets
 )
+find_package(DeployQt5)
 find_package(Catch2 QUIET)
 find_package(elfio QUIET)
 find_package(KF5ItemModels QUIET)
@@ -68,9 +70,6 @@ target_link_options(elfexcavator.core
   PUBLIC
     ${${PROJECT_NAME}_SANITIZERS_LINK}
 )
-if (BUILD_SHARED_LIBS)
-  install(TARGETS elfexcavator.core)
-endif()
 
 # Add Main Executable
 add_executable(elfexcavator)
@@ -94,4 +93,7 @@ install(
   DIRECTORY ${PROJECT_SOURCE_DIR}/data/share/
   DESTINATION share
 )
+if (COMMAND deploy_qt5)
+  deploy_qt5(elfexcavator)
+endif()
 include(CPack)

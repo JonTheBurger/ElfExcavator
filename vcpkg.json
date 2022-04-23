@@ -14,34 +14,24 @@
     {
       "name": "spdlog",
       "version>=": "1.9.0#1"
+    },
+    {
+      "name": "qt5",
+      "features": [ "charts" ]
+    },
+    {
+      "name": "qt-advanced-docking-system",
+      "version>=": "3.8.0"
+    },
+    {
+      "name": "kf5itemmodels",
+      "version>=": "5.89.0"
     }
   ],
   "features": {
     "dev": {
       "description": "Development dependencies",
       "dependencies": [ "catch2" ]
-    },
-    "big": {
-      "description": "Build large dependencies",
-      "dependencies": [
-        {
-          "name": "qt5",
-          "version>=": "5.12.8",
-          "features": [ "charts" ]
-        },
-        {
-          "name": "qt-advanced-docking-system",
-          "version>=": "3.8.0"
-        },
-        {
-          "name": "kf5itemmodels",
-          "version>=": "5.89.0"
-        },
-        {
-          "name": "llvm",
-          "features": [ "utils" ]
-        }
-      ]
     }
   },
   "default-features": []

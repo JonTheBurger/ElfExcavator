@@ -18,16 +18,6 @@
       }
     },
     {
-      "name": "vcpkg",
-      "inherits": "dev",
-      "displayName": "Development Mode (vcpkg)",
-      "description": "Use vcpkg to satisfy dependencies",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/tools/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_MANIFEST_FEATURES": "dev"
-      }
-    },
-    {
       "name": "install",
       "inherits": "dev",
       "displayName": "Install Mode",
@@ -37,6 +27,18 @@
         "CMAKE_INSTALL_PREFIX": "/usr/local",
         "ElfExcavator_DEVELOPER_MODE": "OFF"
       }
+    },
+    {
+      "name": "windows",
+      "inherits": "install",
+      "displayName": "Windows",
+      "description": "Use vcpkg on Windows",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/${presetName}/install",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/tools/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      }
     }
   ],
   "buildPresets": [
@@ -45,12 +47,13 @@
       "configurePreset": "dev"
     },
     {
-      "name": "vcpkg",
-      "configurePreset": "vcpkg"
-    },
-    {
       "name": "install",
       "configurePreset": "install"
+    },
+    {
+      "name": "windows",
+      "configurePreset": "windows",
+      "configuration": "Release"
     }
   ]
 }

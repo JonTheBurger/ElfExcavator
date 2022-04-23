@@ -51,10 +51,6 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <source>MainWindow</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>&amp;File</source>
         <translation type="unfinished"></translation>
     </message>
@@ -86,6 +82,10 @@
         <source>Log Output</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Elf Excavator</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MultiFilterHeaderView</name>
@@ -112,7 +112,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>ELF File Path</source>
+        <source>Visualizes ELF files with an easy to use graphical interface</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

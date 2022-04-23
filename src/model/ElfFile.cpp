@@ -35,7 +35,7 @@ struct ElfFile::Impl {
 
       if (symbol_ok)
       {
-        spdlog::info("Loaded Symbol: {} {} {:x} {:x}",
+        spdlog::debug("Loaded Symbol: {} {} {:x} {:x}",
                      symbol.index,
                      symbol.name,
                      symbol.value,
@@ -43,7 +43,7 @@ struct ElfFile::Impl {
       }
       else
       {
-        spdlog::info("Failed to load symbol at {}", idx);
+        spdlog::error("Failed to load symbol at {}", idx);
         symbols.pop_back();
       }
     }
@@ -128,19 +128,19 @@ bool ElfFile::load(const char* file)
 
 bool ElfFile::load(const std::string& file)
 {
-  spdlog::info("[start] Loading Sections");
+  spdlog::debug("[start] Loading Sections");
   _self->file_name = file;
   bool ok          = _self->elf_file.load(_self->file_name);
-  if (!ok) { spdlog::error("[end] Loading Sections"); }
-  spdlog::info("[end] Loading Sections");
+  if (!ok) { spdlog::error("[end] Loading Sections (Invalid File)"); }
+  spdlog::debug("[end] Loading Sections");
 
   _self->sections.reserve(_self->elf_file.sections.size());
   for (auto* section_header : _self->elf_file.sections)
   {
     _self->sections.push_back(sectionFrom(section_header));
-    spdlog::info("Opened Section: {}", _self->sections.back());
+    spdlog::debug("Opened Section: {}", _self->sections.back());
 
-    spdlog::info("[start] Checking Segments");
+    spdlog::debug("[start] Checking Segments");
     for (auto i = 0u; i < _self->elf_file.segments.size(); ++i)
     {
       auto   virtual_address = _self->elf_file.segments[i]->get_virtual_address();
@@ -149,17 +149,17 @@ bool ElfFile::load(const std::string& file)
       if (virtual_address == section.address)
       {
         section.load_address = _self->elf_file.segments[i]->get_physical_address();
-        spdlog::info("section: {}, virtual: {:x}, physical: {:x}", section.name, section.address, section.load_address);
+        spdlog::debug("section: {}, virtual: {:x}, physical: {:x}", section.name, section.address, section.load_address);
       }
     }
-    spdlog::info("[end] Checking Segments");
+    spdlog::debug("[end] Checking Segments");
 
     if ((section_header->get_type() != SHT_SYMTAB)) { continue; }
     const ELFIO::symbol_section_accessor symbol_reader(_self->elf_file, section_header);
 
-    spdlog::info("[start] Loading Symbols");
+    spdlog::debug("[start] Loading Symbols");
     _self->loadSymbolsFrom(symbol_reader);
-    spdlog::info("[end] Loading Symbols");
+    spdlog::debug("[end] Loading Symbols");
   }
 
   return ok;
@@ -200,9 +200,13 @@ std::string_view ElfFile::contentsOf(const Section& section) const
   if (sections.size() == 0) { return {}; }
 
   const auto            idx          = (section.index < sections.size()) ? (section.index) : (0u);
-  const ELFIO::section* section_info = _self->elf_file.sections[idx];
+  const ELFIO::section* section_info = sections[idx];
 
-  if (!section_info) { return {}; }
+  if ((!section_info) || (section_info->get_data() == nullptr) or (section_info->get_size() == 0))
+  {
+    spdlog::error("Failed to inspect section {} @ {}", (section_info ? section_info->get_name() : "???"), section.index);
+    return {};
+  }
 
   // If any sections failed to load, position will not be equal to index (though indices will still be monotonic).
   if (section_info->get_index() != idx)

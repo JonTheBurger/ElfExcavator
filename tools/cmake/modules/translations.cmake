@@ -1,6 +1,6 @@
 # qt5_create_translation doesn't work in a subdirectory
 set(TS_FILES
-  ${CMAKE_CURRENT_LIST_DIR}/data/i18n/elfexcavator.de_DE.ts
+  ${PROJECT_SOURCE_DIR}/data/i18n/elfexcavator.de_DE.ts
 )
 qt5_create_translation(QM_FILES ${PROJECT_SOURCE_DIR}/src ${TS_FILES})
 set(I18N_QRC "${PROJECT_BINARY_DIR}/i18n.qrc")

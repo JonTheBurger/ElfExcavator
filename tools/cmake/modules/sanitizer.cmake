@@ -7,13 +7,13 @@ endif()
 
 if (CMAKE_C_COMPILER_ID STREQUAL MSVC)
   set(${PROJECT_NAME}_SANITIZERS
-    /fsanitize=address
+    $<$<CONFIG:DEBUG>:/fsanitize=address>
   )
 else()
   set(${PROJECT_NAME}_SANITIZERS
-    -fsanitize=address,leak,undefined -fno-omit-frame-pointer -fno-common
+    $<$<CONFIG:DEBUG>:-fsanitize=address,leak,undefined -fno-omit-frame-pointer -fno-common>
   )
   set(${PROJECT_NAME}_SANITIZERS_LINK
-    -fsanitize=address,leak,undefined
+    $<$<CONFIG:DEBUG>:-fsanitize=address,leak,undefined>
   )
 endif()

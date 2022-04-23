@@ -55,13 +55,14 @@ struct SettingsForm::Impl {
 
     objdump_debounce_timer.setSingleShot(true);
     connect(&objdump_debounce_timer, &QTimer::timeout, [this]() {
-      presenter.setElfFile(ui.objdump_lineedit->text());
+      presenter.setObjdumpPath(ui.objdump_lineedit->text());
     });
 
     //
     connect(&presenter, &SettingsPresenter::elfFileChanged, [this](const QString& elf_file, bool is_valid) {
       static_cast<void>(elf_file);
-      static const QString WARNING_CHAR = QStringLiteral("⚠ ");
+      // Source file encoding matters here!
+      static const QString WARNING_CHAR = QString::fromUtf8("⚠ ");
 
       QString text = ui.elf_file_label->text();
 

@@ -28,7 +28,11 @@ static std::optional<uint64_t> parseNumberFromExpression(std::string_view expres
   // Attempt to parse string with deduced radix
   auto          string_value = expression.substr(first_digit_idx);
   std::uint64_t parsed_value;
-  auto          result = std::from_chars(string_value.begin(), string_value.end(), parsed_value, radix);
+  // &*string_value.end() will fail with MSVC debug STL checks
+  auto begin  = &string_value.data()[0];
+  // Largest decimal int is "18446744073709551615" at 20 characters. 31 is the smallest mask for paranoid truncation.
+  auto end    = &string_value.data()[string_value.size() & 0x1F];
+  auto result = std::from_chars(begin, end, parsed_value, radix);
 
   if (result.ec != std::errc{})
   {

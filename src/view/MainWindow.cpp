@@ -19,30 +19,40 @@
 #include "presenter/SymbolTableItemModel.hpp"
 #include "ui_MainWindow.h"
 
-static void disassembleToAsync(const QString& objdump, const QString& executable, QTextBrowser* widget, const QString& section, quint64 address, quint64 size)
+// Take parameters by value to increment refcount, ensuring they won't be destroyed during async call
+static void disassembleToAsync(QString objdump, QString executable, QTextBrowser* widget, QString section, quint64 address, quint64 size)
 {
-  auto* process = new QProcess;
-  QObject::connect(process,
-                   static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
-                   [widget, process](int exitCode, QProcess::ExitStatus exitStatus) {
-                     if (exitCode == 0 && exitStatus == QProcess::ExitStatus::NormalExit)
-                     {
-                       widget->setText(process->readAllStandardOutput());
-                     }
-                     else
-                     {
-                       widget->clear();
-                     }
-                     process->deleteLater();
-                   });
-  process->start(objdump,
-                 { QStringLiteral("--start-address"),
-                   QString::number(address),
-                   QStringLiteral("--stop-address"),
-                   QString::number(address + size),
-                   QStringLiteral("-CSj"),  // Demangle, Display Source, Only for section
-                   section,
-                   executable });
+  if (!objdump.isEmpty())
+  {
+    auto* process = new QProcess;
+    QObject::connect(process,
+                     static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+                     [widget, process](int exitCode, QProcess::ExitStatus exitStatus) {
+                       if (exitCode == 0 && exitStatus == QProcess::ExitStatus::NormalExit)
+                       {
+                         widget->setText(process->readAllStandardOutput());
+                       }
+                       else
+                       {
+                         spdlog::error("Disassemble failed ({}): {}", exitCode, process->readAll().toStdString());
+                         widget->clear();
+                       }
+                       process->deleteLater();
+                     });
+    spdlog::info("{} --start-address {} --stop-address {} -CSj {} {}", objdump.toStdString(), address, (address + size), section.toStdString(), executable.toStdString());
+    process->start(objdump,
+                   { QStringLiteral("--start-address"),
+                     QString::number(address),
+                     QStringLiteral("--stop-address"),
+                     QString::number(address + size),
+                     QStringLiteral("-CSj"),  // Demangle, Display Source, Only for section
+                     section,
+                     executable });
+  }
+  else
+  {
+    spdlog::warn("Attempting to disassemble without setting objdump executable");
+  }
 }
 
 struct MainWindow::Impl {
