@@ -2,14 +2,20 @@
 cmake_minimum_required(VERSION 3.16)
 project(
   ElfExcavator
-  VERSION 0.0.2
+  VERSION 0.2.0
   DESCRIPTION "Graphical ELF File Inspector"
   HOMEPAGE_URL "https://github.com/JonTheBurger/elfexcavator"
   LANGUAGES C CXX
 )
 
 # Public Options
+set(INSTALL_SYSTEM_DEPS OFF)
+if (WIN32)
+  set(INSTALL_SYSTEM_DEPS ON)
+endif()
+
 option(${PROJECT_NAME}_PACKAGER_MODE "Turn on to disable all dependency auto-resolution" OFF)
+option(${PROJECT_NAME}_INSTALL_SYSTEM_DEPS "Bundle required system and runtime libraries when installing" ${INSTALL_SYSTEM_DEPS})
 option(${PROJECT_NAME}_DEVELOPER_MODE "Search for and use developer tools" OFF)
 option(${PROJECT_NAME}_BUILD_TESTING "Build tests for ${PROJECT_NAME}" ${${PROJECT_NAME}_DEVELOPER_MODE})
 
@@ -72,7 +78,7 @@ target_link_options(elfexcavator.core
 )
 
 # Add Main Executable
-add_executable(elfexcavator)
+add_executable(elfexcavator WIN32)
 target_sources(elfexcavator PRIVATE src/main.cpp)
 target_link_libraries(elfexcavator PRIVATE elfexcavator.core)
 set_target_properties(elfexcavator PROPERTIES

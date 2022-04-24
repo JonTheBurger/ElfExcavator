@@ -18,6 +18,7 @@ struct HexView::Impl {
       : self{ that }
   {
     ui.setupUi(&self);
+    setupPlatformUi(self);
     connect(ui.next_button, &QPushButton::pressed, [this]() { onSearchNextClicked(); });
     connect(ui.previous_button, &QPushButton::pressed, [this]() { onSearchPreviousClicked(); });
     connect(ui.search_lineedit, &QLineEdit::returnPressed, [this]() { onSearchNextClicked(); });
@@ -31,6 +32,16 @@ struct HexView::Impl {
     //    QFont font = view->font();
     //    font.setPixelSize(font.pixelSize() + 2);
     //    view->setFont(font);
+  }
+
+  void setupPlatformUi(HexView& self)
+  {
+    #if WIN32
+    ui.previous_button->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonTextOnly);
+    ui.next_button->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonTextOnly);
+    #else
+    static_cast<void>(self);
+    #endif
   }
 
   int selectedTypeSize(DataType type)

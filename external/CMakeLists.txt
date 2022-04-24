@@ -3,6 +3,9 @@ if (${PROJECT_NAME}_PACKAGER_MODE)
   return()
 endif()
 
+# Place targets in external folder for IDEs
+set(CMAKE_FOLDER external)
+
 # Disable warnings for dependencies
 if (CMAKE_C_COMPILER STREQUAL MSVC)
   add_compile_options(/w)
